@@ -1,6 +1,16 @@
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"fmt"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
 
 func Hashtool(key string) (string, error) {
 	//工具的话还是返回错误比较好
@@ -19,4 +29,36 @@ func ComparePassword(dbPassword, password string) error {
 		return err
 	}
 	return nil
+}
+
+func SaveImages(c *gin.Context, file *multipart.FileHeader) (string, error) {
+	uploadDir := "uploads"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		os.Mkdir(uploadDir, 0755)
+	}
+	//其实也可以直接用限定创建
+	ext := filepath.Ext(file.Filename)
+	//ext可以提取扩展名
+	timestamp := time.Now().Unix()
+	randomStr := uuid.New().String()[:8]
+	newFileName := fmt.Sprintf("Cover_%d_%s%s", timestamp, randomStr, ext)
+
+	dst := filepath.Join(uploadDir, newFileName)
+	//连接路径
+
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		return "", err
+	}
+	//没想到gin本身就有保存文件啊，好好gin
+	return filepath.ToSlash(dst), nil
+	//统一路径分隔符,会根据系统选择\还是/
+}
+
+func RemoveFile(filePath string) error {
+	if filePath != "" {
+		err := os.Remove(filePath)
+		return err
+	}
+	return nil
+	//没有也不用管，反正本身就没
 }

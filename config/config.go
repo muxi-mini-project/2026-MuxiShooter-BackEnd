@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +14,20 @@ import (
 	"MuXi/Library/utils"
 )
 
-var DB *gorm.DB
+const (
+	DefualtCoverPath = "uploads/default.png"
+	DefualtSummary   = "这里空空如也"
+)
+
+var (
+	DB                        *gorm.DB
+	ErrBookNotFound           = errors.New("图书不存在")
+	ErrNoStock                = errors.New("图书库存不足")
+	ErrBorrowedRecordNotFound = errors.New("借书记录查询失败")
+	ErrBookBorrowed           = errors.New("图书在借")
+	ErrDeleteBook             = errors.New("图书删除失败")
+	ErrDeleteCover            = errors.New("封面删除失败")
+)
 
 func getEnv(key, def string) string {
 	if value, ok := os.LookupEnv(key); ok {
@@ -23,22 +37,19 @@ func getEnv(key, def string) string {
 }
 
 func ConnectDB() {
-	dbUser := getEnv("DB_USER", "root")
-	dbPassword := getEnv("DB_PASSWORD", "331910")
+	dbUser := getEnv("DB_USER", "adminuser")
+	dbPassword := getEnv("DB_PASSWORD", "")
+	//我自己设置环境变量
 	dbHost := getEnv("DB_HOST", "47.105.123.226")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbName := getEnv("DB_NAME", "Lib")
-
-	dsnRoot := fmt.Sprintf("%s@%s:tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local",
+	dsnRoot := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local",
 		dbUser, dbPassword, dbHost, dbPort)
 	var err error
 
 	maxRetries := 15
 	for i := range maxRetries {
 		DB, err = gorm.Open(mysql.Open(dsnRoot), &gorm.Config{})
-		// if err != nil {
-
-		// }
 		if err == nil {
 			break
 		}
@@ -62,7 +73,7 @@ func ConnectDB() {
 		log.Fatal("连接数据库失败:", err)
 	}
 
-	log.Panicln("数据库连接成功")
+	log.Println("数据库连接成功")
 
 	err = DB.AutoMigrate(&models.Book{}, &models.User{}, &models.BorrowRecord{})
 	if err != nil {
