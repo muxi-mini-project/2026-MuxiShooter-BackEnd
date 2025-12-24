@@ -51,7 +51,7 @@ func Register(c *gin.Context) {
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "查询数据库失败",
+			Message: "查询数据库失败：" + err.Error(),
 		})
 		return
 	}
@@ -61,7 +61,7 @@ func Register(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "注册密码哈希失败",
+			Message: "注册密码哈希失败：" + err.Error(),
 		})
 		return
 	}
@@ -75,7 +75,7 @@ func Register(c *gin.Context) {
 	if err = config.DB.Create(&newUser).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "注册用户失败",
+			Message: "注册用户失败：" + err.Error(),
 		})
 		return
 	}
@@ -125,7 +125,7 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "查询数据库失败",
+			Message: "查询数据库失败：" + err.Error(),
 		})
 		return
 	}
@@ -146,7 +146,7 @@ func Login(c *gin.Context) {
 	if err := session.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "鉴权组件错误",
+			Message: "鉴权组件错误：" + err.Error(),
 		})
 		return
 	}
@@ -175,7 +175,7 @@ func Logout(c *gin.Context) {
 	if err := session.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "登出失败",
+			Message: "登出失败：" + err.Error(),
 		})
 		return
 	}
@@ -227,7 +227,7 @@ func CreateBook(c *gin.Context) {
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "查询数据库失败",
+			Message: "查询数据库失败：" + err.Error(),
 		})
 		return
 	}
@@ -239,7 +239,7 @@ func CreateBook(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.Response{
 				Code:    http.StatusInternalServerError, //500
-				Message: "图片保存失败",
+				Message: "图片保存失败：" + err.Error(),
 			})
 			return
 		}
@@ -269,14 +269,14 @@ func CreateBook(c *gin.Context) {
 			if err := utils.RemoveFile(coverPath); err != nil {
 				c.JSON(http.StatusInternalServerError, models.Response{
 					Code:    http.StatusInternalServerError, //500
-					Message: "删除封面失败（创建图书失败）",
+					Message: "删除封面失败（创建图书失败）：" + err.Error(),
 				})
 				return
 			}
 		}
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "创建图书失败（删除封面成功）",
+			Message: "创建图书失败（删除封面成功）：" + err.Error(),
 		})
 		return
 	}
@@ -289,7 +289,7 @@ func CreateBook(c *gin.Context) {
 }
 
 // @Summary		删除图书
-// @Description	删除图书(需要管理员权限)
+// @Description	通过book_id删除图书(需要管理员权限)
 // @Tags			books
 // @Security		ApikeyAuth
 // @Produce		json
@@ -317,6 +317,8 @@ func DeletedBook(c *gin.Context) {
 		//DB.Transaction是要么全都成功，要么全都失败的请求
 		//其实像之前一样也可以，就是回传会比较分散
 		//这也算是一种比较优美的方式？
+		//tx是gorm给的变量名，是"transaction"(事务)的缩写
+		//要说的话相当于操作表吧
 
 		var searchedBook models.Book
 
@@ -349,14 +351,14 @@ func DeletedBook(c *gin.Context) {
 		if errors.Is(err, config.ErrDeleteBook) {
 			c.JSON(http.StatusInternalServerError, models.Response{
 				Code:    http.StatusInternalServerError,
-				Message: "图书删除失败",
+				Message: "图书删除失败：" + err.Error(),
 			})
 			return
 		}
 		if errors.Is(err, config.ErrDeleteCover) {
 			c.JSON(http.StatusInternalServerError, models.Response{
 				Code:    http.StatusInternalServerError,
-				Message: "封面删除失败",
+				Message: "封面删除失败：" + err.Error(),
 			})
 			return
 		}
@@ -369,7 +371,7 @@ func DeletedBook(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "数据库意外错误",
+			Message: "数据库意外错误：" + err.Error(),
 		})
 		return
 	}
@@ -445,7 +447,7 @@ func GetBooks(c *gin.Context) {
 	if err = query.Order("updated_at DESC").Find(&books).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "数据库查询失败",
+			Message: "数据库查询失败：" + err.Error(),
 		})
 		return
 	}
@@ -453,5 +455,204 @@ func GetBooks(c *gin.Context) {
 		Code:    http.StatusOK, //200
 		Message: "查询成功",
 		Data:    books,
+	})
+}
+
+// @Summary 更新图书
+// @Description 通过book_id修改图书信息（管理员权限）
+// @Tags books
+// @Security ApiKeyAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param book_id path uint true "图书ID"
+// @Param title formData string false "新书名"
+// @Param author formData string false "新作者"
+// @Param summary formData string false "新简介"
+// @Param cover formData file false "新封面"
+// @Param stock formData integer false "当前库存" minimum(0)
+// @Param total_stock formData integer false "总库存" minimum(0)
+// @Success 200 {object} models.Response{data=models.Book} "更新成功"
+// @Failure 400 {object} models.Response "参数错误"
+// @Failure 404 {object} models.Response "图书不存在"
+// @Failure 500 {object} models.Response "服务器错误"
+// @Router /api/books/{id} [put]
+func UpdateBook(c *gin.Context) {
+	id := c.Param("book_id")
+	bookID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "无效的图书ID",
+		})
+		return
+	}
+
+	var req models.UpdateBookRequest
+
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "参数设定错误",
+		})
+		return
+	}
+	req.ID = uint(bookID)
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	//这里是开了一个业务表
+	//emmm我也不知道有没有什么通用的叫法，我这么叫
+	//他这个表的作用相当于是说记录步骤，如果说出错了我可以回滚
+	//然后最后没问题的话就提交
+	//保证操作完整性说是
+	//一次性更新完所有东西
+	//它跟新建书不一样
+	//recover的话也能捕捉程序崩溃
+	//嗯就大概是这样
+	//也算是多种写法吧
+
+	var upBook models.Book
+	result := tx.Set("gorm:query_option", "FOR UPDATE").First(&upBook, req.ID)
+	//FOR UPDATE是SQL锁机制
+	//即使还没做啥操作，也要在错误后解除锁定再return
+	err = result.Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, models.Response{
+				Code:    http.StatusNotFound, //404
+				Message: "图书不存在",
+			})
+		} else {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, models.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "数据库查询失败：" + err.Error(),
+			})
+		}
+		return
+	}
+
+	updates := make(map[string]interface{})
+	//gorm的update要求用map作为参数
+	//其实也合理，map也确实方便
+	if req.Title != "" {
+		updates["title"] = req.Title
+	}
+	if req.Author != "" {
+		updates["author"] = req.Author
+	}
+	if req.Summary != "" {
+		updates["summary"] = req.Summary
+	}
+
+	//然后是stock和totalstock的逻辑
+	//其实本身就一点，你总量不能小于存量
+	if req.Stock >= 0 || req.TotalStock > 0 {
+		newStock := upBook.Stock
+		newTotalStock := upBook.TotalStock
+		if req.Stock >= 0 {
+			newStock = req.Stock
+		}
+		if req.TotalStock >= 0 {
+			newTotalStock = req.TotalStock
+		}
+
+		if newStock > newTotalStock {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, models.Response{
+				Code:    http.StatusBadRequest, //400
+				Message: "当前库存不得大于总库存",
+			})
+			return
+		}
+
+		updates["stock"] = newStock
+		updates["total_stock"] = newTotalStock
+	}
+
+	//接下来处理cover逻辑
+	//从Create那里搬过来一点
+	coverPath := config.DefualtCoverPath
+	if req.Cover != nil && req.Cover.Size > 0 {
+		log.Printf("上传封面图片,Size:%d", req.Cover.Size)
+		savePath, err := utils.SaveImages(c, req.Cover)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, models.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "图片保存失败：" + err.Error(),
+			})
+			return
+		}
+		coverPath = savePath
+	} else {
+		log.Printf("没有上传封面文件或者文件为空，使用默认路径：%s", coverPath)
+	}
+	//这就ok了，跟Create一摸一样
+	//我说代码复用
+	updates["cover_path"] = coverPath
+
+	//这里一开始是先cover再stock
+	//但我后来换了一下，因为如果说stock错误，我就不应该去下这个封面了
+	//省时并且省力
+
+	if len(updates) > 0 {
+		if err = tx.Model(&upBook).Updates(updates).Error; err != nil {
+			tx.Rollback()
+			if req.Cover != nil && req.Cover.Size > 0 {
+				if err := utils.RemoveFile(coverPath); err != nil {
+					c.JSON(http.StatusInternalServerError, models.Response{
+						Code:    http.StatusInternalServerError, //500
+						Message: "删除封面失败（更新失败）：" + err.Error(),
+					})
+					return
+				}
+				c.JSON(http.StatusInternalServerError, models.Response{
+					Code:    http.StatusInternalServerError, //500
+					Message: "更新失败（删除封面成功）：" + err.Error(),
+				})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, models.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "更新失败：" + err.Error(),
+			})
+			return
+		}
+	}
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		if req.Cover != nil && req.Cover.Size > 0 {
+			if err := utils.RemoveFile(coverPath); err != nil {
+				c.JSON(http.StatusInternalServerError, models.Response{
+					Code:    http.StatusInternalServerError, //500
+					Message: "删除封面失败（提交失败）：" + err.Error(),
+				})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, models.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "提交失败（删除封面成功）：" + err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, models.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "提交失败：" + err.Error(),
+		})
+		return
+	}
+	var book models.Book
+	config.DB.First(&book, req.ID)
+
+	c.JSON(http.StatusOK, models.Response{
+		Code:    http.StatusOK, //200
+		Message: "书籍更新成功",
+		Data:    book,
 	})
 }

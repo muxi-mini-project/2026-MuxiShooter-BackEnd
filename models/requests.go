@@ -32,3 +32,15 @@ type CreateBookRequest struct {
 type FindBookRequest struct {
 	ID uint `json:"book_id" binding:"required"`
 }
+
+// @summary 更新图书请求
+// @description 更新图书请求所需参数
+type UpdateBookRequest struct {
+	ID         uint                  `form:"book_id"`
+	Title      string                `form:"title" binding:"omitempty"`
+	Author     string                `form:"author" binding:"omitempty"`
+	Summary    string                `form:"summary" binding:"omitempty"`
+	Cover      *multipart.FileHeader `form:"cover" binding:"omitempty"`
+	Stock      int                   `form:"stock" binding:"gte=0"`
+	TotalStock int                   `form:"total_stock" binding:"gte=0"`
+}
