@@ -27,6 +27,7 @@ var (
 	ErrBookBorrowed           = errors.New("图书在借")
 	ErrDeleteBook             = errors.New("图书删除失败")
 	ErrDeleteCover            = errors.New("封面删除失败")
+	DefualtGetBooksQueryLimit = 50
 )
 
 func getEnv(key, def string) string {

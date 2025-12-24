@@ -198,7 +198,7 @@ func Logout(c *gin.Context) {
 // @Param author formData string ture "作者"
 // @Param summary formData string false "简介"
 // @Param cover formData file false "封面图片"
-// @Param initial_stock formData interger true "初始库存" minimum(0)
+// @Param initial_stock formData integer true "初始库存" minimum(0)
 // @Success		200		{object}	models.Response{data=models.Book}		"创建成功"
 // @Failure		400		{object}	models.Response		"请求参数错误"
 // @Failure		409		{object}	models.Response		"图书已存在"
@@ -377,4 +377,62 @@ func DeletedBook(c *gin.Context) {
 		Code:    http.StatusOK,
 		Message: "删除图书成功",
 	})
+}
+
+// @Summary 获取图书列表
+// @Description 按条件分页查询图书(顺序书名作者和简介)。默认最多30字，不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。如果有%和_的查询会转义。默认每页最多返回50条查询结果。
+// @Tags books
+// @Security ApiKeyAuth
+// @Produce json
+// @Param title query string false "按书名模糊查询"
+// @Param author query string false "按作者模糊查询"
+// @Param summary query string false "按简介模糊查询"
+// @Param page query integer true "页码" minimum(1)
+// @Success 200 {object} models.Response{data=[]models.Book} "查询成功"
+// @Failure
+// @Failure 500 {object} models.Response "服务器错误"
+// @Router /api/books [get]
+func GetBooks(c *gin.Context) {
+	//搜索的话用mysql自带的模糊搜索就ok了
+	var books []models.Book
+	var err error
+
+	//分页逻辑
+	//默认在第一页
+	page := 1
+	if p := c.Query("page"); p != "" {
+		page, err = strconv.Atoi(p)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, models.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "页码转换失败（或页码不符规范）",
+			})
+			return
+		}
+		if page < 1 {
+			page = 1
+		}
+		//若页码小于1，强制转化为1
+	}
+	query := config.DB.Model(&models.Book{})
+	query.Limit(config.DefualtGetBooksQueryLimit).Offset((page - 1) * config.DefualtGetBooksQueryLimit)
+
+	title := utils.SqlSafeLikeKeyword(c.Query(("title")))
+	author := utils.SqlSafeLikeKeyword(c.Query(("author")))
+	summary := utils.SqlSafeLikeKeyword(c.Query(("summary")))
+	//直接用%xxx%了，小项目，懒得优化了也，但是不让用户用通配符捏
+
+	//默认50,分页，防止轰炸
+	//本来像写在config的，但是go不能循环import
+
+	if title != "" {
+		query = query.Where("title LIKE ?", "%"+title+"%")
+	}
+	if author != "" {
+		query = query.Where("author LIKE ?", "%"+author+"%")
+	}
+	if summary != "" {
+		query = query.Where("summary LIKE ?", "%"+summary+"%")
+	}
+
 }

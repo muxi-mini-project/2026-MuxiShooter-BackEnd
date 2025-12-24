@@ -5,11 +5,16 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	DefualtSqlSafeLikeKeyword = 30
 )
 
 func Hashtool(key string) (string, error) {
@@ -61,4 +66,24 @@ func RemoveFile(filePath string) error {
 	}
 	return nil
 	//没有也不用管，反正本身就没
+}
+
+func SqlSafeLikeKeyword(input string) string {
+	//默认最多三十字
+	if len(input) > DefualtGetBooksQueryLimit {
+		input = input[:DefualtGetBooksQueryLimit]
+	}
+
+	//转义%和_ 防止轰炸。。。
+	//这里用到strings包
+	input = strings.ReplaceAll(input, "%", "\\%")
+	input = strings.ReplaceAll(input, "_", "\\_")
+
+	//禁止单独通配符
+	if input == "%" || input == "_" || input == "" {
+		return ""
+		//直接无效
+	}
+
+	return input
 }
