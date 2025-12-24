@@ -70,8 +70,8 @@ func RemoveFile(filePath string) error {
 
 func SqlSafeLikeKeyword(input string) string {
 	//默认最多三十字
-	if len(input) > DefualtGetBooksQueryLimit {
-		input = input[:DefualtGetBooksQueryLimit]
+	if len(input) > DefualtSqlSafeLikeKeyword {
+		input = input[:DefualtSqlSafeLikeKeyword]
 	}
 
 	//转义%和_ 防止轰炸。。。

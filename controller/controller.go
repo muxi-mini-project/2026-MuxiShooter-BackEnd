@@ -380,50 +380,56 @@ func DeletedBook(c *gin.Context) {
 }
 
 // @Summary 获取图书列表
-// @Description 按条件分页查询图书(顺序书名作者和简介)。默认最多30字，不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。如果有%和_的查询会转义。默认每页最多返回50条查询结果。
+// @Description 按条件分页查询图书(顺序书名作者和简介)。 注意：
+// @Description 1.默认每条最多30字。（主要是针对于简介）
+// @Description 2.不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。
+// @Description 3.如果有%和_的查询会转义。
+// @Description 4.实际效果如果三个参数都传，是返回符合这三个效果
+// @Description 5.按更新时间倒序（最近修改的书在前）
+// @Description 6.如果查询结果为空，返回状态码也是200，但是data为空
 // @Tags books
 // @Security ApiKeyAuth
 // @Produce json
 // @Param title query string false "按书名模糊查询"
 // @Param author query string false "按作者模糊查询"
 // @Param summary query string false "按简介模糊查询"
-// @Param page query integer true "页码" minimum(1)
 // @Success 200 {object} models.Response{data=[]models.Book} "查询成功"
-// @Failure
-// @Failure 500 {object} models.Response "服务器错误"
+// @Failure 500 {object} models.Response "数据库查询失败"
 // @Router /api/books [get]
 func GetBooks(c *gin.Context) {
 	//搜索的话用mysql自带的模糊搜索就ok了
 	var books []models.Book
 	var err error
 
-	//分页逻辑
-	//默认在第一页
-	page := 1
-	if p := c.Query("page"); p != "" {
-		page, err = strconv.Atoi(p)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.Response{
-				Code:    http.StatusInternalServerError, //500
-				Message: "页码转换失败（或页码不符规范）",
-			})
-			return
-		}
-		if page < 1 {
-			page = 1
-		}
-		//若页码小于1，强制转化为1
-	}
-	query := config.DB.Model(&models.Book{})
-	query.Limit(config.DefualtGetBooksQueryLimit).Offset((page - 1) * config.DefualtGetBooksQueryLimit)
+	// //分页逻辑
+	// //默认在第一页
+	// page := 1
+	// if p := c.Query("page"); p != "" {
+	// 	page, err = strconv.Atoi(p)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusInternalServerError, models.Response{
+	// 			Code:    http.StatusInternalServerError, //500
+	// 			Message: "页码转换失败（或页码不符规范）",
+	// 		})
+	// 		return
+	// 	}
+	// 	if page < 1 {
+	// 		page = 1
+	// 	}
+	// 	//若页码小于1，强制转化为1
+	// }
+	// query := config.DB.Model(&models.Book{})
+	// query.Limit(config.DefualtGetBooksQueryLimit).Offset((page - 1) * config.DefualtGetBooksQueryLimit)
 
 	title := utils.SqlSafeLikeKeyword(c.Query(("title")))
 	author := utils.SqlSafeLikeKeyword(c.Query(("author")))
 	summary := utils.SqlSafeLikeKeyword(c.Query(("summary")))
 	//直接用%xxx%了，小项目，懒得优化了也，但是不让用户用通配符捏
 
-	//默认50,分页，防止轰炸
-	//本来像写在config的，但是go不能循环import
+	// // 默认50,分页，防止轰炸
+	// // 本来想写在config的，但是go不能循环import
+	//分页弃掉，懒得做了（
+	query := config.DB.Model(&models.Book{})
 
 	if title != "" {
 		query = query.Where("title LIKE ?", "%"+title+"%")
@@ -435,4 +441,17 @@ func GetBooks(c *gin.Context) {
 		query = query.Where("summary LIKE ?", "%"+summary+"%")
 	}
 
+	//没用order的话是无序的，所以干脆按照修改时间排序了
+	if err = query.Order("updated_at DESC").Find(&books).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "数据库查询失败",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, models.Response{
+		Code:    http.StatusOK, //200
+		Message: "查询成功",
+		Data:    books,
+	})
 }

@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// @Summary		通用响应结构体
-// @Description	通用响应结构体
+// @summary		通用响应结构体
+// @description	通用响应结构体
 // @param			code	int		"状态码"
 // @param			message	string	"消息"
 // @param			data	object	"数据，类型根据接口变化"
@@ -16,8 +16,8 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-// @Summary		用户信息
-// @Description	用户结构体
+// @summary		用户信息
+// @description	用户结构体
 type User struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"user_id"`
 	Username  string    `gorm:"unique;not null" json:"username"`
@@ -27,8 +27,8 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// @Summary		书籍信息
-// @Description	书籍信息
+// @summary		书籍信息
+// @description	书籍信息
 type Book struct {
 	ID      uint   `gorm:"primaryKey;autoIncrement" json:"book_id"`
 	Title   string `json:"title"`
@@ -44,8 +44,8 @@ type Book struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-// @Summary 借阅记录
-// @Description 借阅记录
+// @summary 借阅记录
+// @description 借阅记录
 // @property id uint "记录ID"
 // @property created_at string "创建时间 (RFC3339)"
 // @property updated_at string "更新时间 (RFC3339)"
