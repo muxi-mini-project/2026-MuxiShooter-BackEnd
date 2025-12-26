@@ -85,7 +85,7 @@ func AdminRequired() gin.HandlerFunc {
 		} else if group != "admin" {
 			c.JSON(http.StatusUnauthorized, models.Response{
 				Code:    http.StatusUnauthorized, //401
-				Message: "请先登录",
+				Message: "权限不足",
 			})
 			c.Abort()
 			return

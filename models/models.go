@@ -59,6 +59,8 @@ type BorrowRecord struct {
 	ReturnAt *time.Time `json:"return_at"`
 	//borrowed or returned
 	Status string `json:"status"`
-	User   User   `json:"user,omitempty" swaggerignore:"true"`
-	Book   Book   `json:"book,omitempty" swaggerignore:"true"`
+	//用户信息
+	User User `json:"-" swaggerignore:"true"`
+	//书籍信息
+	Book Book `json:"-" swaggerignore:"true"`
 }
