@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -15,7 +14,7 @@ import (
 )
 
 const (
-	DefualtCoverPath = "uploads/default.png"
+	DefualtCoverPath = "uploads/default.jpg"
 	DefualtSummary   = "这里空空如也"
 )
 
@@ -28,24 +27,21 @@ var (
 	ErrBookBorrowed           = errors.New("图书在借")
 	ErrDeleteBook             = errors.New("图书删除失败")
 	ErrDeleteCover            = errors.New("封面删除失败")
+	ErrSessionSecretGenerate  = errors.New("Session密钥生成错误(在环境变量SESSION_SECRET为空的情况下会选择生成密钥)")
 	// DefualtGetBooksQueryLimit = 50
 )
 
-func getEnv(key, def string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return def
-}
-
 func ConnectDB() {
 	log.Println("开始连接数据库...")
-	dbUser := getEnv("DB_USER", "adminuser")
-	dbPassword := getEnv("DB_PASSWORD", "")
+	dbUser := utils.GetEnv("DB_USER", "adminuser")
+	dbPassword := utils.GetEnv("DB_PASSWORD", "")
 	//我自己设置环境变量
-	dbHost := getEnv("DB_HOST", "47.105.123.226")
-	dbPort := getEnv("DB_PORT", "3306")
-	dbName := getEnv("DB_NAME", "Lib")
+	if len(dbPassword) == 0 {
+		log.Fatal("数据库管理用户密码环境变量(DB_PASSWORD)为空,请配置")
+	}
+	dbHost := utils.GetEnv("DB_HOST", "47.105.123.226")
+	dbPort := utils.GetEnv("DB_PORT", "3306")
+	dbName := utils.GetEnv("DB_NAME", "Lib")
 	dsnRoot := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local",
 		dbUser, dbPassword, dbHost, dbPort)
 	var err error
@@ -86,9 +82,9 @@ func ConnectDB() {
 
 func InitAdmin(db *gorm.DB) {
 	var err error
-	admin := getEnv("ADMIN_USERNAME", "adminuser")
+	admin := utils.GetEnv("ADMIN_USERNAME", "adminuser")
 
-	adminPsw := getEnv("ADMIN_PASSWORD", "")
+	adminPsw := utils.GetEnv("ADMIN_PASSWORD", "")
 
 	var count int64
 	db.Model(&models.User{}).Where("username = ?", admin).Count(&count)

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -86,4 +87,18 @@ func SqlSafeLikeKeyword(input string) string {
 	}
 
 	return input
+}
+
+func GetEnv(key, def string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return def
+}
+
+func GenerateSessionSercet(keyLength int) ([]byte, error) {
+	key := make([]byte, keyLength)
+	_, err := rand.Read(key)
+
+	return key, err
 }

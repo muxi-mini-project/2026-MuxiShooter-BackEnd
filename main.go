@@ -19,6 +19,8 @@ package main
 import (
 	"MuXi/Library/config"
 	_ "MuXi/Library/docs"
+	"MuXi/Library/middleware"
+	"MuXi/Library/routes"
 	"log"
 	"net/http"
 	"time"
@@ -55,7 +57,10 @@ func main() {
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	//使用gzip传输
 
+	middleware.InitSession(r)
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	routes.RegisterRoutes(r)
 
 	log.Println("服务器启动在 http://localhost:8080")
 	srv := &http.Server{
