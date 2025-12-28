@@ -4,6 +4,7 @@ import (
 	"MuXi/Library/config"
 	"MuXi/Library/models"
 	"MuXi/Library/utils"
+	"encoding/base64"
 	"log"
 	"net/http"
 	"time"
@@ -15,14 +16,24 @@ import (
 
 func InitSession(r *gin.Engine) {
 	var err error
-	sessionSecret := make([]byte, 32)
-	sessionSecret = []byte(utils.GetEnv("SESSION_SECRET", ""))
-	//这里要base64格式的
-	if len(sessionSecret) == 0 {
+	var sessionSecret []byte
+
+	secretStr := utils.GetEnv("SESSION_SECRET", "")
+
+	if len(secretStr) == 0 {
 		log.Println("session密钥环境变量为空(SESSION_SECRET),将随机生成")
+
 		sessionSecret, err = utils.GenerateSessionSercet(32)
 		if err != nil {
 			log.Fatal(config.ErrSessionSecretGenerate.Error() + ":" + err.Error())
+		}
+	} else {
+		decoded, err := base64.StdEncoding.DecodeString(secretStr)
+		if err == nil {
+			sessionSecret = decoded
+			log.Println("已使用session密钥环境变量(SESSION_SECRET)")
+		} else {
+			log.Fatal("base64解码session密钥环境变量失败:" + err.Error())
 		}
 	}
 
