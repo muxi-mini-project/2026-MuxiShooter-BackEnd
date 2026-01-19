@@ -9,8 +9,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"MuXi/Library/models"
-	"MuXi/Library/utils"
+	models "MuXi/2026-MuxiShooter-Backend/models"
+	utils "MuXi/2026-MuxiShooter-Backend/utils"
 )
 
 const (
@@ -45,7 +45,7 @@ func ConnectDB() {
 		return
 	}
 	dbPort := utils.GetEnv("DB_PORT", "3306")
-	dbName := utils.GetEnv("DB_NAME", "Lib")
+	dbName := utils.GetEnv("DB_NAME", "mini")
 	dsnRoot := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local",
 		dbUser, dbPassword, dbHost, dbPort)
 	var err error
@@ -105,7 +105,7 @@ func InitAdmin(db *gorm.DB) {
 	}
 
 	adminUser := models.User{
-		Username: admin,
+		Name:     admin,
 		Password: hashedPsw,
 		Group:    "admin",
 	}

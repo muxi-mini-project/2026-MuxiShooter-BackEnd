@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"MuXi/Library/config"
-	"MuXi/Library/models"
-	"MuXi/Library/utils"
+	config "MuXi/2026-MuxiShooter-Backend/config"
+	models "MuXi/2026-MuxiShooter-Backend/models"
+	utils "MuXi/2026-MuxiShooter-Backend/utils"
 	"errors"
 	"log"
 	"net/http"
@@ -40,7 +40,7 @@ func Register(c *gin.Context) {
 	}
 
 	var searchedUser models.User
-	err = config.DB.Where("username = ?", req.Username).First(&searchedUser).Error
+	err = config.DB.Where("username = ?", req.Name).First(&searchedUser).Error
 	//这里不用first的话就要用users切片，然后Find(&users)
 	//我们只需要自己确保只有一个就ok
 	if err == nil {
@@ -69,7 +69,7 @@ func Register(c *gin.Context) {
 	}
 
 	newUser := models.User{
-		Username: req.Username,
+		Name:     req.Name,
 		Password: hashedPsw,
 		Group:    "user",
 	}
@@ -86,7 +86,7 @@ func Register(c *gin.Context) {
 		Code:    http.StatusOK, //200 ok
 		Message: "注册用户成功",
 		Data: gin.H{
-			"username": newUser.Username,
+			"username": newUser.Name,
 			"user_id":  newUser.ID,
 		},
 	})
@@ -116,7 +116,7 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	err = config.DB.Where("username = ?", req.Username).First(&user).Error
+	err = config.DB.Where("username = ?", req.Name).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusForbidden, models.Response{
 			Code:    http.StatusForbidden, //403

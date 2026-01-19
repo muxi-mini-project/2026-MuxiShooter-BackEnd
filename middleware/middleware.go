@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"MuXi/Library/config"
-	"MuXi/Library/models"
-	"MuXi/Library/utils"
+	config "MuXi/2026-MuxiShooter-Backend/config"
+	models "MuXi/2026-MuxiShooter-Backend/models"
+	utils "MuXi/2026-MuxiShooter-Backend/utils"
 	"encoding/base64"
 	"log"
 	"net/http"

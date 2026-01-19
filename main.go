@@ -17,10 +17,10 @@
 package main
 
 import (
-	"MuXi/Library/config"
-	_ "MuXi/Library/docs"
-	"MuXi/Library/middleware"
-	"MuXi/Library/routes"
+	config "MuXi/2026-MuxiShooter-Backend/config"
+	_ "MuXi/2026-MuxiShooter-Backend/docs"
+	middleware "MuXi/2026-MuxiShooter-Backend/middleware"
+	routes "MuXi/2026-MuxiShooter-Backend/routes"
 	"log"
 	"net/http"
 	"time"

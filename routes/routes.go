@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"MuXi/Library/controller"
-	"MuXi/Library/middleware"
+	controller "MuXi/2026-MuxiShooter-Backend/controller"
+	middleware "MuXi/2026-MuxiShooter-Backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )

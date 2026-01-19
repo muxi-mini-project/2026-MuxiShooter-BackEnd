@@ -7,12 +7,16 @@ import (
 
 // @description	用户信息
 type User struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"user_id"`
-	Username  string    `gorm:"unique;not null" json:"username"`
-	Password  string    `gorm:"not null" json:"-"`
-	Group     string    `gorm:"default:'user'" json:"group"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID              uint      `gorm:"primaryKey;autoIncrement" json:"user_id"`
+	Name            string    `gorm:"unique;not null" json:"name"`
+	Password        string    `gorm:"not null" json:"-"`
+	Group           string    `gorm:"default:'user'" json:"group"`
+	HeadImagePath   string    `json:"head_image_path"`
+	PersonImagePath string    `json:"person_image_path"`
+	StrengthCoin    uint      `gorm:"default:0" json:"strength_coin"`
+	SelectCoin      uint      `gorm:"default:0" json:"select_coin"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // @description	书籍信息

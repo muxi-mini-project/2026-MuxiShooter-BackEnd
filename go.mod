@@ -1,4 +1,4 @@
-module MuXi/Library
+module MuXi/2026-MuxiShooter-Backend
 
 go 1.25.5
 
