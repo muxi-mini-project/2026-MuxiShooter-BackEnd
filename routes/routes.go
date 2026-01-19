@@ -19,7 +19,7 @@ func RegisterRoutes(r *gin.Engine) {
 		authGroup := api.Group("/")
 		authGroup.Use(middleware.AuthRequired())
 		{
-			authGroup.POST("/logout", controller.Logout)
+			// authGroup.POST("/logout", controller.Logout)
 			borrows := authGroup.Group("/borrows")
 			{
 				borrows.POST("", controller.BorrowBook)

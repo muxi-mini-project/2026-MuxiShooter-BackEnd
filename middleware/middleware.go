@@ -3,68 +3,66 @@ package middleware
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
 	models "MuXi/2026-MuxiShooter-Backend/models"
-	utils "MuXi/2026-MuxiShooter-Backend/utils"
-	"encoding/base64"
-	"log"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/ulule/limiter/v3"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
-func InitSession(r *gin.Engine) {
-	var err error
-	var sessionSecret []byte
-
-	secretStr := utils.GetEnv("SESSION_SECRET", "")
-
-	if len(secretStr) == 0 {
-		log.Println("session密钥环境变量为空(SESSION_SECRET),将随机生成")
-
-		sessionSecret, err = utils.GenerateSessionSercet(32)
-		if err != nil {
-			log.Fatal(config.ErrSessionSecretGenerate.Error() + ":" + err.Error())
+func JWTAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "请先登录",
+			})
+			return
 		}
-	} else {
-		decoded, err := base64.StdEncoding.DecodeString(secretStr)
-		if err == nil {
-			sessionSecret = decoded
-			log.Println("已使用session密钥环境变量(SESSION_SECRET)")
+
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, config.ErrJWTWrongSigningMethod
+			}
+			secret := config.JWTSecret
+			return secret, nil
+		})
+		if err != nil || !token.Valid {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "无效的token",
+			})
+			return
+		}
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("user_id", claims["user_id"])
+			c.Set("group", claims["group"])
 		} else {
-			log.Fatal("base64解码session密钥环境变量失败:" + err.Error())
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "无效的token声明",
+			})
+			return
 		}
+
+		c.Next()
 	}
-
-	var store sessions.Store
-	store = initCookieStore(sessionSecret)
-
-	store.Options(sessions.Options{
-		Path:     "/",
-		MaxAge:   int((7 * 24 * time.Hour).Seconds()),
-		HttpOnly: true,
-		Secure:   gin.Mode() == gin.ReleaseMode,
-		SameSite: 0,
-	})
-
-	r.Use(sessions.Sessions("LibSession", store))
-
-	log.Println("Session 中间件初始化完成")
-}
-
-func initCookieStore(sessionSecret []byte) sessions.Store {
-	log.Printf("使用Cookie存储Session")
-	store := cookie.NewStore(sessionSecret)
-	return store
 }
 
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		userID := session.Get("user_id")
+		userID, exists := c.Get("user_id")
 
-		if userID == nil {
+		if userID == nil || !exists {
 			c.JSON(http.StatusUnauthorized, models.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "请先登录",
@@ -74,8 +72,6 @@ func AuthRequired() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", userID)
-
 		c.Next()
 		//继续处理后面的中间件
 	}
@@ -83,19 +79,24 @@ func AuthRequired() gin.HandlerFunc {
 
 func AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		g := session.Get("group")
-
+		g, exists := c.Get("group")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "token权限组参数缺失",
+			})
+			return
+		}
 		if group, ok := g.(string); !ok {
-			c.JSON(http.StatusBadRequest, models.Response{
-				Code:    http.StatusBadRequest, //400
-				Message: "权限组参数错误",
+			c.JSON(http.StatusUnauthorized, models.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "权限组参数格式错误",
 			})
 			c.Abort()
 			return
 		} else if group != "admin" {
-			c.JSON(http.StatusUnauthorized, models.Response{
-				Code:    http.StatusUnauthorized, //401
+			c.JSON(http.StatusForbidden, models.Response{
+				Code:    http.StatusForbidden, //403
 				Message: "权限不足",
 			})
 			c.Abort()
@@ -104,4 +105,15 @@ func AdminRequired() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func Limiter() gin.HandlerFunc {
+	rate := limiter.Rate{
+		Period: 1 * time.Second,
+		Limit:  config.NumLimter, //20
+	}
+	store := memory.NewStore()
+
+	middleware := mgin.NewMiddleware(limiter.New(store, rate))
+	return middleware
 }

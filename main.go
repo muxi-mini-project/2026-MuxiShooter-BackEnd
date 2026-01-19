@@ -19,7 +19,8 @@ package main
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
 	_ "MuXi/2026-MuxiShooter-Backend/docs"
-	middleware "MuXi/2026-MuxiShooter-Backend/middleware"
+	"MuXi/2026-MuxiShooter-Backend/middleware"
+	"MuXi/2026-MuxiShooter-Backend/models"
 	routes "MuXi/2026-MuxiShooter-Backend/routes"
 	"log"
 	"net/http"
@@ -35,6 +36,7 @@ import (
 func main() {
 	config.ConnectDB()
 	config.InitAdmin(config.DB)
+	config.InitJWTSecret()
 
 	r := gin.Default()
 
@@ -48,18 +50,25 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           1 * time.Hour,
 	}))
+	r.Use(middleware.Limiter())
+	r.Use(func(c *gin.Context) {
+		c.Next()
+		if c.Writer.Status() == http.StatusTooManyRequests {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, models.Response{
+				Code:    http.StatusTooManyRequests,
+				Message: "请求过于频繁，请稍后重试(1s)",
+			})
+		}
+	})
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	//使用gzip传输
+
 	r.Static("/uploads", "./uploads")
 	//gin的Static是Gin框架中用来提供静态文件服务的功能，就像在餐厅里设置一个自助区
 	//让顾客可以自己取用饮料和小食，而不需要每次都找服务员点单。
 
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
-	//使用gzip传输
-
-	middleware.InitSession(r)
-
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.Use(middleware.JWTAuth())
 	routes.RegisterRoutes(r)
 
 	log.Println("服务器启动在 http://localhost:8080")

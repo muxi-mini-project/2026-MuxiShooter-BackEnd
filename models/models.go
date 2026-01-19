@@ -5,66 +5,113 @@ import (
 	"time"
 )
 
-// @description	用户信息
 type User struct {
-	ID              uint      `gorm:"primaryKey;autoIncrement" json:"user_id"`
-	Name            string    `gorm:"unique;not null" json:"name"`
-	Password        string    `gorm:"not null" json:"-"`
-	Group           string    `gorm:"default:'user'" json:"group"`
-	HeadImagePath   string    `json:"head_image_path"`
-	PersonImagePath string    `json:"person_image_path"`
-	StrengthCoin    uint      `gorm:"default:0" json:"strength_coin"`
-	SelectCoin      uint      `gorm:"default:0" json:"select_coin"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	ID               uint              `gorm:"primaryKey;autoIncrement" json:"user_id"`
+	Name             string            `gorm:"unique;not null" json:"user_name"`
+	Password         string            `gorm:"not null" json:"-"`
+	Group            string            `gorm:"default:'user'" json:"group"`
+	HeadImagePath    string            `json:"head_image_path"`
+	PersonImagePath  string            `json:"person_image_path"`
+	StrengthCoin     uint              `gorm:"default:0" json:"strength_coin"`
+	SelectCoin       uint              `gorm:"default:0" json:"select_coin"`
+	UserAchievements []UserAchievement `gorm:"foreignKey:UserID" json:"-"`
+	UserSkills       []UserSkill       `gorm:"foreignKey:UserID" json:"-"`
+	UserCards        []UserCard        `gorm:"foreignKey:UserID" json:"-"`
+	UserItems        []UserItem        `gorm:"foreignKey:UserID" json:"-"`
+	CreatedAt        time.Time         `json:"created_at"`
+	UpdatedAt        time.Time         `json:"updated_at"`
 }
 
-// @description	书籍信息
-type Book struct {
-	//图书ID minimum(1)
-	ID uint `gorm:"primaryKey;autoIncrement" json:"book_id"`
-	//书名
-	Title string `json:"title"`
-	//作者
-	Author string `json:"author"`
-	//简介
-	Summary string `json:"summary"`
-	//封面路径
-	CoverPath string `json:"cover_path"`
-	//初始库存
-	InitialStock int `json:"initial_stock" gorm:"default:0" binding:"gte=0"`
-	//现有库存
-	Stock int `json:"stock" gorm:"default:0" binding:"gte=0"`
-	//总库存
-	TotalStock int `json:"total_stock" gorm:"default:0" binding:"gte=0"`
-	//创建时间 (RFC3339)
-	CreatedAt time.Time `json:"created_at"`
-	//更新时间 (RFC3339)
-	UpdatedAt time.Time `json:"updated_at"`
+type Achievement struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"achievement_id"`
+	Name        string    `gorm:"unique;not null" json:"achievement_name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-// @description	借阅记录
-type BorrowRecord struct {
-	//记录ID minimum(1)
-	ID uint `gorm:"primaryKey;autoIncrement" json:"record_id"`
-	//创建时间 (RFC3339)
-	CreatedAt time.Time `json:"created_at"`
-	//更新时间 (RFC3339)
-	UpdatedAt time.Time `json:"updated_at"`
-	//删除时间 (RFC3339)
-	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
-	//用户ID minimum(1)
-	UserID uint `json:"user_id"`
-	//图书ID minimum(1)
-	BookID uint `json:"book_id"`
-	//借书时间 (RFC3339)
-	BorrowAt time.Time `json:"borrow_at"`
-	//归还时间 (RFC3339)
-	ReturnAt *time.Time `json:"return_at"`
-	//borrowed or returned
-	Status string `json:"status"`
-	//用户信息
-	User User `json:"-" swaggerignore:"true"`
-	//书籍信息
-	Book Book `json:"-" swaggerignore:"true"`
+type UserAchievement struct {
+	UserID        uint       `gorm:"primaryKey" json:"-"`
+	AchievementID uint       `gorm:"primaryKey" json:"-"`
+	IsComplete    bool       `gorm:"default:false" json:"is_complete"`
+	CompleteAt    *time.Time `json:"complete_at,omitempty"`
+	Claimed       bool       `gorm:"default:false" json:"claimed"`
+	ClaimedAt     *time.Time `json:"claimed_at,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+
+	//关联关系
+	User        User        `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Achievement Achievement `gorm:"foreignKey:AchievementID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+type Skill struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"skill_id"`
+	Name        string    `gorm:"unique;not null" json:"skill_name"`
+	Description string    `json:"description"`
+	SkillGroup  string    `json:"skill_group"` //Front End Products Design Operations Apple Android
+	PrqSkillId  uint      `json:"prq_skill_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type UserSkill struct {
+	UserID     uint       `gorm:"primaryKey" json:"-"`
+	SkillID    uint       `gorm:"primaryKey" json:"-"`
+	IsComplete bool       `gorm:"default:false" json:"is_complete"`
+	CompleteAt *time.Time `json:"complete_at,omitempty"`
+	SkillGrade uint       `gorm:"default:0" json:"skill_grade"`
+	Claimed    bool       `gorm:"default:false" json:"claimed"`
+	ClaimedAt  *time.Time `json:"claimed_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+
+	//关联关系
+	User  User  `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Skill Skill `gorm:"foreignKey:SkillID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+type Card struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"skill_id"`
+	Name        string    `gorm:"unique;not null" json:"skill_name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type UserCard struct {
+	UserID     uint       `gorm:"primaryKey" json:"-"`
+	CardID     uint       `gorm:"primaryKey" json:"-"`
+	IsComplete bool       `gorm:"default:false" json:"is_complete"`
+	CompleteAt *time.Time `json:"complete_at,omitempty"`
+	Claimed    bool       `gorm:"default:false" json:"claimed"`
+	ClaimedAt  *time.Time `json:"claimed_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+
+	//关联关系
+	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Card Card `gorm:"foreignKey:CardID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+type Item struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement" json:"skill_id"`
+	Name        string    `gorm:"unique;not null" json:"skill_name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type UserItem struct {
+	UserID     uint       `gorm:"primaryKey" json:"-"`
+	ItemID     uint       `gorm:"primaryKey" json:"-"`
+	IsComplete bool       `gorm:"default:false" json:"is_complete"`
+	CompleteAt *time.Time `json:"complete_at,omitempty"`
+	Claimed    bool       `gorm:"default:false" json:"claimed"`
+	ClaimedAt  *time.Time `json:"claimed_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+
+	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Item Item `gorm:"foreignKey:ItemID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }

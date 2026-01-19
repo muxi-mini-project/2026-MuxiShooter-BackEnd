@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -14,21 +15,15 @@ import (
 )
 
 const (
-	DefualtCoverPath = "uploads/default.jpg"
-	DefualtSummary   = "这里空空如也"
+	NumLimter = 20
+	
 )
 
 var (
-	DB                        *gorm.DB
-	ErrBookNotFound           = errors.New("图书不存在")
-	ErrNoStock                = errors.New("图书库存不足")
-	ErrOutOfStock             = errors.New("图书库存溢出")
-	ErrBorrowedRecordNotFound = errors.New("借书记录查询失败")
-	ErrBookBorrowed           = errors.New("图书在借")
-	ErrDeleteBook             = errors.New("图书删除失败")
-	ErrDeleteCover            = errors.New("封面删除失败")
-	ErrSessionSecretGenerate  = errors.New("Session密钥生成错误(在环境变量SESSION_SECRET为空的情况下会选择生成密钥)")
-	// DefualtGetBooksQueryLimit = 50
+	DB                       *gorm.DB
+	JWTSecret                []byte
+	ErrJWTWrongSigningMethod = errors.New("无效的签名算法")
+	ErrJWTSecretGenerate     = errors.New("JWT密钥生成失败")
 )
 
 func ConnectDB() {
@@ -79,7 +74,7 @@ func ConnectDB() {
 
 	log.Println("数据库连接成功")
 
-	err = DB.AutoMigrate(&models.Book{}, &models.User{}, &models.BorrowRecord{})
+	err = DB.AutoMigrate(&models.Achievement{}, &models.User{}, &models.Skill{}, &models.Card{}, &models.Item{})
 	if err != nil {
 		log.Fatal("数据迁移失败:", err)
 	}
@@ -115,4 +110,29 @@ func InitAdmin(db *gorm.DB) {
 	}
 
 	log.Printf("成功初始化管理员: %s / %s\n", admin, adminPsw)
+}
+
+func InitJWTSecret() {
+	var err error
+	secretStr := utils.GetEnv("JWT_SECRET", "")
+
+	if len(secretStr) == 0 {
+		log.Println("JWT密钥环境变量为空(JWT_SECRET),将随机生成")
+
+		JWTSecret, err = utils.GenerateSessionSercet(32)
+		if err != nil {
+			log.Fatal(ErrJWTSecretGenerate.Error() + ":" + err.Error())
+		}
+	} else {
+		decoded, err := base64.StdEncoding.DecodeString(secretStr)
+		if err == nil {
+			if len(decoded) < 32 {
+				log.Fatal("JWT密钥长度不足32字节")
+			}
+			JWTSecret = decoded
+			log.Println("已使用JWT密钥环境变量(JWT_SECRET)")
+		} else {
+			log.Fatal("base64解码JWT密钥环境变量失败:" + err.Error())
+		}
+	}
 }
