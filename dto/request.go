@@ -13,3 +13,10 @@ type LoginRequest struct {
 	UserName string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+// @summary		用户修改密码
+// @description	修改密码
+type UpdatePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6,max=25"`
+}

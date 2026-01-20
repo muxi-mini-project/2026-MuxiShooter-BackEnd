@@ -2,6 +2,7 @@ package routes
 
 import (
 	"MuXi/2026-MuxiShooter-Backend/controller"
+	"MuXi/2026-MuxiShooter-Backend/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,25 +16,21 @@ func RegisterRoutes(r *gin.Engine) {
 			auth.POST("/login", controller.Login)
 		}
 
-		// 	authGroup := api.Group("/")
-		// 	authGroup.Use(middleware.JWTAuth())
-		// 	{
-		// 		// authGroup.POST("/logout", controller.Logout)
-		// 		borrows := authGroup.Group("/borrows")
-		// 		{
-		// 			borrows.POST("", controller.BorrowBook)
-		// 			borrows.POST("/return", controller.ReturnBook)
-		// 		}
+		authGroup := api.Group("/")
+		authGroup.Use(middleware.JWTAuth())
+		{
+			profile := authGroup.Group("/profile")
+			{
+				update := profile.Group("/update")
+				{
+					update.POST("/password", controller.UpdatePassword)
+				}
+			}
 
-		// 		authGroup.GET("/books", controller.GetBooks)
-
-		// 		adminGroup := authGroup.Group("/")
-		// 		adminGroup.Use(middleware.AdminRequired())
-		// 		{
-		// 			adminGroup.POST("/books", controller.CreateBook)
-		// 			adminGroup.PUT("/books/:book_id", controller.UpdateBook)
-		// 			adminGroup.DELETE("/books/:book_id", controller.DeletedBook)
-		// 		}
-		// 	}
+			adminGroup := authGroup.Group("/")
+			adminGroup.Use(middleware.AdminRequired())
+			{
+			}
+		}
 	}
 }

@@ -19,7 +19,7 @@ import (
 // @Tags			auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		models.RegisterRequest						true	"注册请求"
+// @Param			request	body		dto.RegisterRequest						true	"注册请求"
 // @Success		200		{object}	dto.Response{data=dto.AuthData}	"注册成功"
 // @Failure		400		{object}	dto.Response								"请求参数错误"
 // @Failure		409		{object}	dto.Response								"用户已存在"
@@ -125,8 +125,8 @@ func Register(c *gin.Context) {
 // @Tags			auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		models.LoginRequest						true	"注册请求"
-// @Success		200		{object}	dto.Response{data=dto.CommonUserData}	"登录成功"
+// @Param			request	body		dto.LoginRequest						true	"注册请求"
+// @Success		200		{object}	dto.Response{data=dto.dto.AuthData}	"登录成功"
 // @Failure		400		{object}	dto.Response							"请求参数错误"
 // @Failure		403		{object}	dto.Response							"认证失败"
 // @Failure		500		{object}	dto.Response							"服务器错误"
@@ -206,5 +206,117 @@ func Login(c *gin.Context) {
 			Token:     tokenStr,
 			ExpiresAt: expirationTime.Unix(),
 		},
+	})
+}
+
+// @Summary		修改用户密码
+// @Description	修改用户密码(修改完前端请删掉token并跳转登录页面)
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		dto.UpdatePasswordRequest						true	"注册请求"
+// @Success		200		{object}	dto.Response	"登录成功"
+// @Failure		400		{object}	dto.Response							"请求参数错误"
+// @Failure		403		{object}	dto.Response							"认证失败"
+// @Failure		500		{object}	dto.Response							"服务器错误"
+// @Router			/api/auth/profile/update/password [put]
+func UpdatePassword(c *gin.Context) {
+	var req dto.UpdatePasswordRequest
+	var err error
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "请求参数错误",
+		})
+		return
+	}
+	if req.NewPassword == req.OldPassword {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "所给新旧密码不能相同",
+		})
+		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+
+	var user models.User
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	result := tx.Set("gorm:query_option", "FOR UPDATE").First(&user, userId)
+
+	err = result.Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound, //404
+				Message: "用户不存在",
+			})
+		} else {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, dto.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "数据库查询失败：" + err.Error(),
+			})
+		}
+		return
+	}
+	err = utils.ComparePassword(user.Password, req.OldPassword)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden, //403
+			Message: "旧密码错误",
+		})
+		return
+	}
+
+	hashedPassword, err := utils.Hashtool(req.NewPassword)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "哈希新密码失败：" + err.Error(),
+		})
+		return
+	}
+	updates := make(map[string]interface{})
+	updates["password"] = hashedPassword
+	if err = tx.Model(&user).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "修改密码失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "提交失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "修改密码成功，已退出登录，请重新登陆",
 	})
 }
