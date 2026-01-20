@@ -53,7 +53,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -69,19 +69,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "403": {
                         "description": "认证失败",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -117,7 +117,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -133,19 +133,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "409": {
                         "description": "用户已存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -192,7 +192,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -211,7 +211,7 @@ const docTemplate = `{
                     "500": {
                         "description": "数据库查询失败",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -275,7 +275,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -291,19 +291,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "409": {
                         "description": "图书已存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -380,7 +380,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -396,19 +396,19 @@ const docTemplate = `{
                     "400": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
                         "description": "图书不存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -442,7 +442,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -458,25 +458,25 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
                         "description": "图书不存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "409": {
                         "description": "图书借阅中",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -517,7 +517,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -533,25 +533,25 @@ const docTemplate = `{
                     "400": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
                         "description": "图书不存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "409": {
                         "description": "库存不足",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "数据库错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -592,7 +592,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/models.Response"
+                                    "$ref": "#/definitions/dto.Response"
                                 },
                                 {
                                     "type": "object",
@@ -608,25 +608,25 @@ const docTemplate = `{
                     "400": {
                         "description": "参数错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
                         "description": "借阅记录不存在",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "409": {
                         "description": "馆内库存溢出",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "数据库错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -651,13 +651,13 @@ const docTemplate = `{
                     "200": {
                         "description": "登出成功",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "500": {
                         "description": "服务器错误",
                         "schema": {
-                            "$ref": "#/definitions/models.Response"
+                            "$ref": "#/definitions/dto.Response"
                         }
                     }
                 }
@@ -831,7 +831,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Response": {
+        "dto.Response": {
             "description": "通用响应结构体",
             "type": "object",
             "properties": {

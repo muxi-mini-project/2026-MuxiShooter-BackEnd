@@ -19,8 +19,8 @@ package main
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
 	_ "MuXi/2026-MuxiShooter-Backend/docs"
+	"MuXi/2026-MuxiShooter-Backend/dto"
 	"MuXi/2026-MuxiShooter-Backend/middleware"
-	"MuXi/2026-MuxiShooter-Backend/models"
 	routes "MuXi/2026-MuxiShooter-Backend/routes"
 	"log"
 	"net/http"
@@ -54,7 +54,7 @@ func main() {
 	r.Use(func(c *gin.Context) {
 		c.Next()
 		if c.Writer.Status() == http.StatusTooManyRequests {
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, models.Response{
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, dto.Response{
 				Code:    http.StatusTooManyRequests,
 				Message: "请求过于频繁，请稍后重试(1s)",
 			})
@@ -68,8 +68,10 @@ func main() {
 	//让顾客可以自己取用饮料和小食，而不需要每次都找服务员点单。
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.Use(middleware.JWTAuth())
 	routes.RegisterRoutes(r)
+
+	// test.TestReferenceTableWithDB(config.DB)
+	// test.CleanTestData(config.DB)
 
 	log.Println("服务器启动在 http://localhost:8080")
 	srv := &http.Server{

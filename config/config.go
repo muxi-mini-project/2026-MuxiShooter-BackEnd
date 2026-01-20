@@ -16,7 +16,6 @@ import (
 
 const (
 	NumLimter = 20
-	
 )
 
 var (
@@ -74,7 +73,7 @@ func ConnectDB() {
 
 	log.Println("数据库连接成功")
 
-	err = DB.AutoMigrate(&models.Achievement{}, &models.User{}, &models.Skill{}, &models.Card{}, &models.Item{})
+	err = DB.AutoMigrate(&models.Achievement{}, &models.User{}, &models.Skill{}, &models.Card{}, &models.Item{}, &models.UserAchievement{}, &models.UserCard{}, &models.UserItem{}, &models.UserSkill{})
 	if err != nil {
 		log.Fatal("数据迁移失败:", err)
 	}
@@ -100,7 +99,7 @@ func InitAdmin(db *gorm.DB) {
 	}
 
 	adminUser := models.User{
-		Name:     admin,
+		Username: admin,
 		Password: hashedPsw,
 		Group:    "admin",
 	}

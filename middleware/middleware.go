@@ -2,7 +2,7 @@ package middleware
 
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
-	models "MuXi/2026-MuxiShooter-Backend/models"
+	"MuXi/2026-MuxiShooter-Backend/dto"
 	"net/http"
 	"strings"
 	"time"
@@ -20,7 +20,7 @@ func JWTAuth() gin.HandlerFunc {
 		var err error
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "请先登录",
 			})
@@ -36,18 +36,75 @@ func JWTAuth() gin.HandlerFunc {
 			secret := config.JWTSecret
 			return secret, nil
 		})
-		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: err.Error(),
+			})
+			return
+		}
+		if !token.Valid {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "无效的token",
 			})
 			return
 		}
+
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			c.Set("user_id", claims["user_id"])
-			c.Set("group", claims["group"])
+			userIDValue, uexists := claims["user_id"]
+			groupValue, gexists := claims["group"]
+
+			if !uexists {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+					Code:    http.StatusUnauthorized, //401
+					Message: "token中缺少用户信息",
+				})
+				return
+			}
+			var userID uint
+			switch v := userIDValue.(type) {
+			case float64:
+				if v <= 0 {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+						Code:    http.StatusUnauthorized, //401
+						Message: "无效的用户ID",
+					})
+					return
+				}
+				userID = uint(v)
+			case int:
+				if v <= 0 {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+						Code:    http.StatusUnauthorized, //401
+						Message: "无效的用户ID",
+					})
+					return
+				}
+				userID = uint(v)
+			default:
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+					Code:    http.StatusUnauthorized, //401
+					Message: "用户ID格式错误",
+				})
+				return
+			}
+
+			c.Set("user_id", userID)
+
+			if gexists {
+				if groupStr, ok := groupValue.(string); ok && groupStr != "" {
+					c.Set("group", groupStr)
+				} else {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+						Code:    http.StatusUnauthorized, //401
+						Message: "用户权限组错误",
+					})
+					return
+				}
+			}
 		} else {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "无效的token声明",
 			})
@@ -58,44 +115,25 @@ func JWTAuth() gin.HandlerFunc {
 	}
 }
 
-func AuthRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-
-		if userID == nil || !exists {
-			c.JSON(http.StatusUnauthorized, models.Response{
-				Code:    http.StatusUnauthorized, //401
-				Message: "请先登录",
-			})
-			c.Abort()
-			//阻止后续中间件的执行
-			return
-		}
-
-		c.Next()
-		//继续处理后面的中间件
-	}
-}
-
 func AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		g, exists := c.Get("group")
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "token权限组参数缺失",
 			})
 			return
 		}
 		if group, ok := g.(string); !ok {
-			c.JSON(http.StatusUnauthorized, models.Response{
+			c.JSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized, //401
 				Message: "权限组参数格式错误",
 			})
 			c.Abort()
 			return
 		} else if group != "admin" {
-			c.JSON(http.StatusForbidden, models.Response{
+			c.JSON(http.StatusForbidden, dto.Response{
 				Code:    http.StatusForbidden, //403
 				Message: "权限不足",
 			})
