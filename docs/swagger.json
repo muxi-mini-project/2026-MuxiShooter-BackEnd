@@ -1,797 +1,476 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "description": "MuXi Library Management System\n主要功能：用户登录注册（存在user和admin权限组），对图书的CRUD，可以借书和还书等等\n其中增删改书籍权限仅限管理员账户，其他功能普通用户可用\n注意:请设置环境变量DB_PASSWORD为你数据库adminuser（默认为adminuser）的密码",
-    "title": "MuXi Library Management System",
-    "termsOfService": "http://swagger.io/terms",
-    "contact": {
-      "name": "FireChickenMP4",
-      "email": "13930176445@163.com"
+    "swagger": "2.0",
+    "info": {
+        "description": "MuXi Library Management System\n主要功能：用户登录注册（存在user和admin权限组），对图书的CRUD，可以借书和还书等等\n其中增删改书籍权限仅限管理员账户，其他功能普通用户可用\n注意:请设置环境变量DB_PASSWORD为你数据库adminuser（默认为adminuser）的密码",
+        "title": "MuXi Library Management System",
+        "termsOfService": "http://swagger.io/terms",
+        "contact": {
+            "name": "FireChickenMP4",
+            "email": "13930176445@163.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
     },
-    "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "description": "用户登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "注册请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "登录成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AuthData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "description": "注册用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "用户注册",
+                "parameters": [
+                    {
+                        "description": "注册请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "注册成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AuthData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "用户已存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/profile/update/headimage": {
+            "put": {
+                "description": "修改用户头像",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile-update"
+                ],
+                "summary": "修改用户头像",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "新头像",
+                        "name": "new_head_image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "登录成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "头像为空",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/profile/update/password": {
+            "put": {
+                "description": "修改用户密码(修改完前端请删掉token并跳转登录页面)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile-update"
+                ],
+                "summary": "修改用户密码",
+                "parameters": [
+                    {
+                        "description": "修改密码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改密码成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/profile/update/username": {
+            "put": {
+                "description": "修改用户名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile-update"
+                ],
+                "summary": "修改用户名",
+                "parameters": [
+                    {
+                        "description": "修改用户名请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUsernameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改用户名成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        }
     },
-    "version": "1.0"
-  },
-  "host": "localhost:8080",
-  "basePath": "/api",
-  "paths": {
-    "/api/auth/login": {
-      "post": {
-        "description": "用户登录",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["auth"],
-        "summary": "用户登录",
-        "parameters": [
-          {
-            "description": "注册请求",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/models.LoginRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "登录成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+    "definitions": {
+        "dto.AuthData": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "description": "有效期，24h",
+                    "type": "integer"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.LoginData"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "请求参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "403": {
-            "description": "认证失败",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/register": {
-      "post": {
-        "description": "注册用户",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["auth"],
-        "summary": "用户注册",
-        "parameters": [
-          {
-            "description": "注册请求",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/models.RegisterRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "注册成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+                "token": {
+                    "description": "JWT Token",
+                    "type": "string"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.RegisterData"
-                    }
-                  }
+                "user": {
+                    "description": "用户",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CommonUserData"
+                        }
+                    ]
                 }
-              ]
             }
-          },
-          "400": {
-            "description": "请求参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "409": {
-            "description": "用户已存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
-    },
-    "/api/books": {
-      "get": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "按条件分页查询图书(顺序书名作者和简介)。 注意：\n1.默认每条最多30字。（主要是针对于简介）\n2.不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。\n3.如果有%和_的查询会转义。\n4.实际效果如果三个参数都传，是返回符合这三个效果\n5.按更新时间倒序（最近修改的书在前）\n6.如果查询结果为空，返回状态码也是200，但是data为空",
-        "produces": ["application/json"],
-        "tags": ["books"],
-        "summary": "获取图书列表",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "按书名模糊查询",
-            "name": "title",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "按作者模糊查询",
-            "name": "author",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "按简介模糊查询",
-            "name": "summary",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "查询成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+        },
+        "dto.CommonUserData": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "description": "权限组",
+                    "type": "string"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/models.Book"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "500": {
-            "description": "数据库查询失败",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "添加新图书(需要管理员权限)",
-        "consumes": ["multipart/form-data"],
-        "produces": ["application/json"],
-        "tags": ["books"],
-        "summary": "创建图书",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "书名",
-            "name": "title",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "作者",
-            "name": "author",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "简介",
-            "name": "summary",
-            "in": "formData"
-          },
-          {
-            "type": "file",
-            "description": "封面图片",
-            "name": "cover",
-            "in": "formData"
-          },
-          {
-            "minimum": 0,
-            "type": "integer",
-            "description": "初始库存",
-            "name": "initial_stock",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "创建成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+                "head_image_path": {
+                    "description": "头像路径",
+                    "type": "string"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.Book"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "请求参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "409": {
-            "description": "图书已存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
-    },
-    "/api/books/{book_id}": {
-      "put": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "通过book_id修改图书信息（管理员权限）",
-        "consumes": ["multipart/form-data"],
-        "produces": ["application/json"],
-        "tags": ["books"],
-        "summary": "更新图书",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "图书ID",
-            "name": "book_id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "新书名",
-            "name": "title",
-            "in": "formData"
-          },
-          {
-            "type": "string",
-            "description": "新作者",
-            "name": "author",
-            "in": "formData"
-          },
-          {
-            "type": "string",
-            "description": "新简介",
-            "name": "summary",
-            "in": "formData"
-          },
-          {
-            "type": "file",
-            "description": "新封面",
-            "name": "cover",
-            "in": "formData"
-          },
-          {
-            "minimum": 0,
-            "type": "integer",
-            "description": "当前库存",
-            "name": "stock",
-            "in": "formData"
-          },
-          {
-            "minimum": 0,
-            "type": "integer",
-            "description": "总库存",
-            "name": "total_stock",
-            "in": "formData"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "更新成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+                "select_coin": {
+                    "description": "抽卡货币",
+                    "type": "integer"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.Book"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "404": {
-            "description": "图书不存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      },
-      "delete": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "通过book_id删除图书(需要管理员权限)",
-        "produces": ["application/json"],
-        "tags": ["books"],
-        "summary": "删除图书",
-        "parameters": [
-          {
-            "type": "integer",
-            "description": "图书ID",
-            "name": "book_id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "删除成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+                "strength_coin": {
+                    "description": "强化货币",
+                    "type": "integer"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.Book"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "400": {
-            "description": "请求参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "404": {
-            "description": "图书不存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "409": {
-            "description": "图书借阅中",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
-    },
-    "/api/borrows": {
-      "post": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "创建借阅记录 (return_at 初始为 空)",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["borrows"],
-        "summary": "借阅图书",
-        "parameters": [
-          {
-            "description": "借阅请求",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/models.FindBookRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "借阅成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.BorrowRecord"
-                    }
-                  }
+                "username": {
+                    "description": "用户名",
+                    "type": "string"
                 }
-              ]
             }
-          },
-          "400": {
-            "description": "参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "404": {
-            "description": "图书不存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "409": {
-            "description": "库存不足",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "数据库错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
-    },
-    "/api/borrows/return": {
-      "post": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "更新借阅状态 主要是(return_at 改为非空)",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["borrows"],
-        "summary": "归还图书",
-        "parameters": [
-          {
-            "description": "归还请求",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/models.FindBookRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "归还成功",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/dto.Response"
+        },
+        "dto.LoginRequest": {
+            "description": "登录信息",
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/models.BorrowRecord"
-                    }
-                  }
+                "username": {
+                    "type": "string"
                 }
-              ]
             }
-          },
-          "400": {
-            "description": "参数错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
+        },
+        "dto.RegisterRequest": {
+            "description": "注册信息",
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 6
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
+                }
             }
-          },
-          "404": {
-            "description": "借阅记录不存在",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
+        },
+        "dto.Response": {
+            "description": "通用响应结构体",
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "http状态码",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "根据具体数据来定类型"
+                },
+                "message": {
+                    "description": "返回的消息",
+                    "type": "string"
+                }
             }
-          },
-          "409": {
-            "description": "馆内库存溢出",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
+        },
+        "dto.UpdatePasswordRequest": {
+            "description": "修改密码",
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 6
+                },
+                "old_password": {
+                    "type": "string"
+                }
             }
-          },
-          "500": {
-            "description": "数据库错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
+        },
+        "dto.UpdateUsernameRequest": {
+            "description": "修改用户名",
+            "type": "object",
+            "required": [
+                "new_username"
+            ],
+            "properties": {
+                "new_username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
+                }
             }
-          }
         }
-      }
-    },
-    "/api/logout": {
-      "post": {
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "description": "用户登出",
-        "produces": ["application/json"],
-        "tags": ["auth"],
-        "summary": "用户登出",
-        "responses": {
-          "200": {
-            "description": "登出成功",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "schema": {
-              "$ref": "#/definitions/dto.Response"
-            }
-          }
-        }
-      }
     }
-  },
-  "definitions": {
-    "models.Book": {
-      "description": "书籍信息",
-      "type": "object",
-      "properties": {
-        "author": {
-          "description": "作者",
-          "type": "string"
-        },
-        "book_id": {
-          "description": "图书ID minimum(1)",
-          "type": "integer"
-        },
-        "cover_path": {
-          "description": "封面路径",
-          "type": "string"
-        },
-        "created_at": {
-          "description": "创建时间 (RFC3339)",
-          "type": "string"
-        },
-        "initial_stock": {
-          "description": "初始库存",
-          "type": "integer",
-          "minimum": 0
-        },
-        "stock": {
-          "description": "现有库存",
-          "type": "integer",
-          "minimum": 0
-        },
-        "summary": {
-          "description": "简介",
-          "type": "string"
-        },
-        "title": {
-          "description": "书名",
-          "type": "string"
-        },
-        "total_stock": {
-          "description": "总库存",
-          "type": "integer",
-          "minimum": 0
-        },
-        "updated_at": {
-          "description": "更新时间 (RFC3339)",
-          "type": "string"
-        }
-      }
-    },
-    "models.BorrowRecord": {
-      "description": "借阅记录",
-      "type": "object",
-      "properties": {
-        "book_id": {
-          "description": "图书ID minimum(1)",
-          "type": "integer"
-        },
-        "borrow_at": {
-          "description": "借书时间 (RFC3339)",
-          "type": "string"
-        },
-        "created_at": {
-          "description": "创建时间 (RFC3339)",
-          "type": "string"
-        },
-        "deleted_at": {
-          "description": "删除时间 (RFC3339)",
-          "type": "string"
-        },
-        "record_id": {
-          "description": "记录ID minimum(1)",
-          "type": "integer"
-        },
-        "return_at": {
-          "description": "归还时间 (RFC3339)",
-          "type": "string"
-        },
-        "status": {
-          "description": "borrowed or returned",
-          "type": "string"
-        },
-        "updated_at": {
-          "description": "更新时间 (RFC3339)",
-          "type": "string"
-        },
-        "user_id": {
-          "description": "用户ID minimum(1)",
-          "type": "integer"
-        }
-      }
-    },
-    "models.FindBookRequest": {
-      "description": "包含图书ID的请求",
-      "type": "object",
-      "required": ["book_id"],
-      "properties": {
-        "book_id": {
-          "description": "图书ID minimum(1)",
-          "type": "integer"
-        }
-      }
-    },
-    "models.LoginData": {
-      "description": "登录返回Data结构体",
-      "type": "object",
-      "properties": {
-        "user_group": {
-          "description": "user or admin",
-          "type": "integer"
-        },
-        "username": {
-          "type": "string"
-        }
-      }
-    },
-    "models.LoginRequest": {
-      "description": "登录信息",
-      "type": "object",
-      "required": ["password", "username"],
-      "properties": {
-        "password": {
-          "type": "string"
-        },
-        "username": {
-          "type": "string"
-        }
-      }
-    },
-    "models.RegisterData": {
-      "description": "注册返回Data结构体",
-      "type": "object",
-      "properties": {
-        "user_id": {
-          "description": "用户ID minimum(1)",
-          "type": "integer"
-        },
-        "username": {
-          "type": "string"
-        }
-      }
-    },
-    "models.RegisterRequest": {
-      "description": "注册信息",
-      "type": "object",
-      "required": ["password", "username"],
-      "properties": {
-        "password": {
-          "type": "string",
-          "maxLength": 25,
-          "minLength": 6
-        },
-        "username": {
-          "type": "string",
-          "maxLength": 20,
-          "minLength": 3
-        }
-      }
-    },
-    "dto.Response": {
-      "description": "通用响应结构体",
-      "type": "object",
-      "properties": {
-        "code": {
-          "description": "http状态码",
-          "type": "integer"
-        },
-        "data": {
-          "description": "根据具体数据来定类型"
-        },
-        "message": {
-          "description": "返回的消息",
-          "type": "string"
-        }
-      }
-    }
-  },
-  "securityDefinitions": {
-    "ApiKeyAuth": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
-    }
-  }
 }

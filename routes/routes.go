@@ -23,7 +23,9 @@ func RegisterRoutes(r *gin.Engine) {
 			{
 				update := profile.Group("/update")
 				{
-					update.POST("/password", controller.UpdatePassword)
+					update.PUT("/password", controller.UpdatePassword)
+					update.PUT("/username", controller.UpdateUsername)
+					update.PUT("/headimage", controller.UpdateHeadImage)
 				}
 			}
 

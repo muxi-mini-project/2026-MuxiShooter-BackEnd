@@ -6,19 +6,22 @@ import (
 )
 
 type User struct {
-	ID               uint              `gorm:"primaryKey;autoIncrement" json:"user_id"`
-	Username         string            `gorm:"unique;not null" json:"username"`
-	Password         string            `gorm:"not null" json:"-"`
-	Group            string            `gorm:"default:'user'" json:"group"`
-	HeadImagePath    string            `json:"head_image_path"`
-	StrengthCoin     uint              `gorm:"default:0" json:"strength_coin"`
-	SelectCoin       uint              `gorm:"default:0" json:"select_coin"`
-	UserAchievements []UserAchievement `gorm:"foreignKey:UserID" json:"-"`
-	UserSkills       []UserSkill       `gorm:"foreignKey:UserID" json:"-"`
-	UserCards        []UserCard        `gorm:"foreignKey:UserID" json:"-"`
-	UserItems        []UserItem        `gorm:"foreignKey:UserID" json:"-"`
-	CreatedAt        time.Time         `json:"created_at"`
-	UpdatedAt        time.Time         `json:"updated_at"`
+	ID                 uint              `gorm:"primaryKey;autoIncrement" json:"user_id"`
+	Username           string            `gorm:"unique;not null" json:"username"`
+	UsernameUpdatedAt  *time.Time        `json:"username_updated_at"`
+	Password           string            `gorm:"not null" json:"-"`
+	PasswordUpdatedAt  *time.Time        `json:"password_updated_at"`
+	Group              string            `gorm:"default:'user'" json:"group"`
+	HeadImagePath      string            `json:"head_image_path"`
+	HeadImageUpdatedAt *time.Time        `json:"head_image_updated_at"`
+	StrengthCoin       uint              `gorm:"default:0" json:"strength_coin"`
+	SelectCoin         uint              `gorm:"default:0" json:"select_coin"`
+	UserAchievements   []UserAchievement `gorm:"foreignKey:UserID" json:"-"`
+	UserSkills         []UserSkill       `gorm:"foreignKey:UserID" json:"-"`
+	UserCards          []UserCard        `gorm:"foreignKey:UserID" json:"-"`
+	UserItems          []UserItem        `gorm:"foreignKey:UserID" json:"-"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
 }
 
 type Achievement struct {

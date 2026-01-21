@@ -1,92 +1,40 @@
 basePath: /api
 definitions:
-  models.Book:
-    description: 书籍信息
+  dto.AuthData:
     properties:
-      author:
-        description: 作者
-        type: string
-      book_id:
-        description: 图书ID minimum(1)
+      expires_at:
+        description: 有效期，24h
         type: integer
-      cover_path:
-        description: 封面路径
+      token:
+        description: JWT Token
         type: string
-      created_at:
-        description: 创建时间 (RFC3339)
-        type: string
-      initial_stock:
-        description: 初始库存
-        minimum: 0
-        type: integer
-      stock:
-        description: 现有库存
-        minimum: 0
-        type: integer
-      summary:
-        description: 简介
-        type: string
-      title:
-        description: 书名
-        type: string
-      total_stock:
-        description: 总库存
-        minimum: 0
-        type: integer
-      updated_at:
-        description: 更新时间 (RFC3339)
-        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/dto.CommonUserData'
+        description: 用户
     type: object
-  models.BorrowRecord:
-    description: 借阅记录
+  dto.CommonUserData:
     properties:
-      book_id:
-        description: 图书ID minimum(1)
+      group:
+        description: 权限组
+        type: string
+      head_image_path:
+        description: 头像路径
+        type: string
+      select_coin:
+        description: 抽卡货币
         type: integer
-      borrow_at:
-        description: 借书时间 (RFC3339)
-        type: string
-      created_at:
-        description: 创建时间 (RFC3339)
-        type: string
-      deleted_at:
-        description: 删除时间 (RFC3339)
-        type: string
-      record_id:
-        description: 记录ID minimum(1)
+      strength_coin:
+        description: 强化货币
         type: integer
-      return_at:
-        description: 归还时间 (RFC3339)
-        type: string
-      status:
-        description: borrowed or returned
-        type: string
-      updated_at:
-        description: 更新时间 (RFC3339)
-        type: string
       user_id:
-        description: 用户ID minimum(1)
-        type: integer
-    type: object
-  models.FindBookRequest:
-    description: 包含图书ID的请求
-    properties:
-      book_id:
-        description: 图书ID minimum(1)
-        type: integer
-    required:
-      - book_id
-    type: object
-  models.LoginData:
-    description: 登录返回Data结构体
-    properties:
-      user_group:
-        description: user or admin
+        description: 用户ID
         type: integer
       username:
+        description: 用户名
         type: string
     type: object
-  models.LoginRequest:
+  dto.LoginRequest:
     description: 登录信息
     properties:
       password:
@@ -94,19 +42,10 @@ definitions:
       username:
         type: string
     required:
-      - password
-      - username
+    - password
+    - username
     type: object
-  models.RegisterData:
-    description: 注册返回Data结构体
-    properties:
-      user_id:
-        description: 用户ID minimum(1)
-        type: integer
-      username:
-        type: string
-    type: object
-  models.RegisterRequest:
+  dto.RegisterRequest:
     description: 注册信息
     properties:
       password:
@@ -118,8 +57,8 @@ definitions:
         minLength: 3
         type: string
     required:
-      - password
-      - username
+    - password
+    - username
     type: object
   dto.Response:
     description: 通用响应结构体
@@ -132,6 +71,29 @@ definitions:
       message:
         description: 返回的消息
         type: string
+    type: object
+  dto.UpdatePasswordRequest:
+    description: 修改密码
+    properties:
+      new_password:
+        maxLength: 25
+        minLength: 6
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  dto.UpdateUsernameRequest:
+    description: 修改用户名
+    properties:
+      new_username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - new_username
     type: object
 host: localhost:8080
 info:
@@ -153,404 +115,204 @@ paths:
   /api/auth/login:
     post:
       consumes:
-        - application/json
+      - application/json
       description: 用户登录
       parameters:
-        - description: 注册请求
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.LoginRequest"
+      - description: 注册请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: 登录成功
           schema:
             allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.LoginData"
-                type: object
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "403":
           description: 认证失败
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "500":
           description: 服务器错误
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
       summary: 用户登录
       tags:
-        - auth
+      - auth
   /api/auth/register:
     post:
       consumes:
-        - application/json
+      - application/json
       description: 注册用户
       parameters:
-        - description: 注册请求
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.RegisterRequest"
+      - description: 注册请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: 注册成功
           schema:
             allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.RegisterData"
-                type: object
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AuthData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "409":
           description: 用户已存在
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "500":
           description: 服务器错误
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
       summary: 用户注册
       tags:
-        - auth
-  /api/books:
-    get:
-      description: |-
-        按条件分页查询图书(顺序书名作者和简介)。 注意：
-        1.默认每条最多30字。（主要是针对于简介）
-        2.不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。
-        3.如果有%和_的查询会转义。
-        4.实际效果如果三个参数都传，是返回符合这三个效果
-        5.按更新时间倒序（最近修改的书在前）
-        6.如果查询结果为空，返回状态码也是200，但是data为空
-      parameters:
-        - description: 按书名模糊查询
-          in: query
-          name: title
-          type: string
-        - description: 按作者模糊查询
-          in: query
-          name: author
-          type: string
-        - description: 按简介模糊查询
-          in: query
-          name: summary
-          type: string
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: 查询成功
-          schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.Book"
-                    type: array
-                type: object
-        "500":
-          description: 数据库查询失败
-          schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 获取图书列表
-      tags:
-        - books
-    post:
-      consumes:
-        - multipart/form-data
-      description: 添加新图书(需要管理员权限)
-      parameters:
-        - description: 书名
-          in: formData
-          name: title
-          required: true
-          type: string
-        - description: 作者
-          in: formData
-          name: author
-          required: true
-          type: string
-        - description: 简介
-          in: formData
-          name: summary
-          type: string
-        - description: 封面图片
-          in: formData
-          name: cover
-          type: file
-        - description: 初始库存
-          in: formData
-          minimum: 0
-          name: initial_stock
-          required: true
-          type: integer
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: 创建成功
-          schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Book"
-                type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "409":
-          description: 图书已存在
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 创建图书
-      tags:
-        - books
-  /api/books/{book_id}:
-    delete:
-      description: 通过book_id删除图书(需要管理员权限)
-      parameters:
-        - description: 图书ID
-          in: path
-          name: book_id
-          required: true
-          type: integer
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: 删除成功
-          schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Book"
-                type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "404":
-          description: 图书不存在
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "409":
-          description: 图书借阅中
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 删除图书
-      tags:
-        - books
+      - auth
+  /api/profile/update/headimage:
     put:
       consumes:
-        - multipart/form-data
-      description: 通过book_id修改图书信息（管理员权限）
+      - multipart/form-data
+      description: 修改用户头像
       parameters:
-        - description: 图书ID
-          in: path
-          name: book_id
-          required: true
-          type: integer
-        - description: 新书名
-          in: formData
-          name: title
-          type: string
-        - description: 新作者
-          in: formData
-          name: author
-          type: string
-        - description: 新简介
-          in: formData
-          name: summary
-          type: string
-        - description: 新封面
-          in: formData
-          name: cover
-          type: file
-        - description: 当前库存
-          in: formData
-          minimum: 0
-          name: stock
-          type: integer
-        - description: 总库存
-          in: formData
-          minimum: 0
-          name: total_stock
-          type: integer
+      - description: 新头像
+        in: formData
+        name: new_head_image
+        required: true
+        type: file
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: 更新成功
+          description: 登录成功
           schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Book"
-                type: object
+            $ref: '#/definitions/dto.Response'
         "400":
-          description: 参数错误
+          description: 头像为空
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "403":
+          description: 认证失败
+          schema:
+            $ref: '#/definitions/dto.Response'
         "404":
-          description: 图书不存在
+          description: 用户不存在
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "500":
           description: 服务器错误
           schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 更新图书
+            $ref: '#/definitions/dto.Response'
+      summary: 修改用户头像
       tags:
-        - books
-  /api/borrows:
-    post:
+      - profile-update
+  /api/profile/update/password:
+    put:
       consumes:
-        - application/json
-      description: 创建借阅记录 (return_at 初始为 空)
+      - application/json
+      description: 修改用户密码(修改完前端请删掉token并跳转登录页面)
       parameters:
-        - description: 借阅请求
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.FindBookRequest"
+      - description: 修改密码请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePasswordRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
-          description: 借阅成功
+          description: 修改密码成功
           schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.BorrowRecord"
-                type: object
+            $ref: '#/definitions/dto.Response'
         "400":
-          description: 参数错误
+          description: 请求参数错误
           schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "403":
+          description: 认证失败
+          schema:
+            $ref: '#/definitions/dto.Response'
         "404":
-          description: 图书不存在
+          description: 用户不存在
           schema:
-            $ref: "#/definitions/dto.Response"
-        "409":
-          description: 库存不足
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "500":
-          description: 数据库错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 借阅图书
-      tags:
-        - borrows
-  /api/borrows/return:
-    post:
-      consumes:
-        - application/json
-      description: 更新借阅状态 主要是(return_at 改为非空)
-      parameters:
-        - description: 归还请求
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.FindBookRequest"
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: 归还成功
-          schema:
-            allOf:
-              - $ref: "#/definitions/dto.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.BorrowRecord"
-                type: object
-        "400":
-          description: 参数错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "404":
-          description: 借阅记录不存在
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "409":
-          description: 馆内库存溢出
-          schema:
-            $ref: "#/definitions/dto.Response"
-        "500":
-          description: 数据库错误
-          schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 归还图书
-      tags:
-        - borrows
-  /api/logout:
-    post:
-      description: 用户登出
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: 登出成功
-          schema:
-            $ref: "#/definitions/dto.Response"
+            $ref: '#/definitions/dto.Response'
         "500":
           description: 服务器错误
           schema:
-            $ref: "#/definitions/dto.Response"
-      security:
-        - ApiKeyAuth: []
-      summary: 用户登出
+            $ref: '#/definitions/dto.Response'
+      summary: 修改用户密码
       tags:
-        - auth
-securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
+      - profile-update
+  /api/profile/update/username:
+    put:
+      consumes:
+      - application/json
+      description: 修改用户名
+      parameters:
+      - description: 修改用户名请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUsernameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改用户名成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "403":
+          description: 认证失败
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 修改用户名
+      tags:
+      - profile-update
 swagger: "2.0"

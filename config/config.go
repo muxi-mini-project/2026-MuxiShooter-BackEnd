@@ -15,7 +15,11 @@ import (
 )
 
 const (
-	NumLimter = 20
+	NumLimter                = 20
+	DefaultHeadImagePath     = "uploads/DefaultHeadImg.jpeg"
+	PasswordUpdatedInterval  = 30 * time.Minute
+	UsernameUpdatedInterval  = 24 * time.Hour
+	HeadImageUpdatedInterval = 24 * time.Hour
 )
 
 var (
@@ -99,9 +103,10 @@ func InitAdmin(db *gorm.DB) {
 	}
 
 	adminUser := models.User{
-		Username: admin,
-		Password: hashedPsw,
-		Group:    "admin",
+		Username:      admin,
+		Password:      hashedPsw,
+		Group:         "admin",
+		HeadImagePath: DefaultHeadImagePath,
 	}
 
 	if err := db.Create(&adminUser).Error; err != nil {
@@ -118,7 +123,7 @@ func InitJWTSecret() {
 	if len(secretStr) == 0 {
 		log.Println("JWT密钥环境变量为空(JWT_SECRET),将随机生成")
 
-		JWTSecret, err = utils.GenerateSessionSercet(32)
+		JWTSecret, err = utils.GenerateSercet(32)
 		if err != nil {
 			log.Fatal(ErrJWTSecretGenerate.Error() + ":" + err.Error())
 		}

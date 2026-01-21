@@ -1,19 +1,14 @@
-// @title						MuXi Library Management System
-// @version					1.0
-// @description				MuXi Library Management System
-// @description				主要功能：用户登录注册（存在user和admin权限组），对图书的CRUD，可以借书和还书等等
-// @description				其中增删改书籍权限仅限管理员账户，其他功能普通用户可用
-// @description				注意:请设置环境变量DB_PASSWORD为你数据库adminuser（默认为adminuser）的密码
-// @termsOfService				http://swagger.io/terms
-// @contact.name				FireChickenMP4
-// @contact.email				13930176445@163.com
-// @license.name				MIT
-// @license.url				https://opensource.org/licenses/MIT
-// @host						localhost:8080
-// @BasePath					/api
-// @securityDefinitions.apikey	ApiKeyAuth
-// @in							header
-// @name						Authorization
+//	@title						MuXiShooter
+//	@version					1.0
+//	@description				MuXiShooter
+//	@termsOfService				http://swagger.io/terms
+//	@contact.name				FireChickenMP4
+//	@contact.email				13930176445@163.com
+//	@license.name				MIT
+//	@license.url				https://opensource.org/licenses/MIT
+//	@host						localhost:8080
+//	@BasePath					/api
+
 package main
 
 import (

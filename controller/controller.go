@@ -6,6 +6,7 @@ import (
 	models "MuXi/2026-MuxiShooter-Backend/models"
 	utils "MuXi/2026-MuxiShooter-Backend/utils"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,11 +20,11 @@ import (
 // @Tags			auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		dto.RegisterRequest						true	"注册请求"
+// @Param			request	body		dto.RegisterRequest				true	"注册请求"
 // @Success		200		{object}	dto.Response{data=dto.AuthData}	"注册成功"
-// @Failure		400		{object}	dto.Response								"请求参数错误"
-// @Failure		409		{object}	dto.Response								"用户已存在"
-// @Failure		500		{object}	dto.Response								"服务器错误"
+// @Failure		400		{object}	dto.Response					"请求参数错误"
+// @Failure		409		{object}	dto.Response					"用户已存在"
+// @Failure		500		{object}	dto.Response					"服务器错误"
 // @Router			/api/auth/register [post]
 func Register(c *gin.Context) {
 	var req dto.RegisterRequest
@@ -32,7 +33,7 @@ func Register(c *gin.Context) {
 	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.Response{
 			Code:    http.StatusBadRequest, //400
-			Message: "请求参数错误",
+			Message: "请求参数错误:" + err.Error(),
 		})
 		return
 	}
@@ -67,9 +68,10 @@ func Register(c *gin.Context) {
 	}
 
 	newUser := models.User{
-		Username: req.UserName,
-		Password: hashedPsw,
-		Group:    "user",
+		Username:      req.UserName,
+		Password:      hashedPsw,
+		Group:         "user",
+		HeadImagePath: config.DefaultHeadImagePath,
 	}
 
 	if err = config.DB.Create(&newUser).Error; err != nil {
@@ -125,11 +127,11 @@ func Register(c *gin.Context) {
 // @Tags			auth
 // @Accept			json
 // @Produce		json
-// @Param			request	body		dto.LoginRequest						true	"注册请求"
-// @Success		200		{object}	dto.Response{data=dto.dto.AuthData}	"登录成功"
-// @Failure		400		{object}	dto.Response							"请求参数错误"
-// @Failure		403		{object}	dto.Response							"认证失败"
-// @Failure		500		{object}	dto.Response							"服务器错误"
+// @Param			request	body		dto.LoginRequest				true	"注册请求"
+// @Success		200		{object}	dto.Response{data=dto.AuthData}	"登录成功"
+// @Failure		400		{object}	dto.Response					"请求参数错误"
+// @Failure		403		{object}	dto.Response					"认证失败"
+// @Failure		500		{object}	dto.Response					"服务器错误"
 // @Router			/api/auth/login [post]
 func Login(c *gin.Context) {
 	var req dto.LoginRequest
@@ -138,7 +140,7 @@ func Login(c *gin.Context) {
 	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.Response{
 			Code:    http.StatusBadRequest, //400
-			Message: "请求参数错误",
+			Message: "请求参数错误:" + err.Error(),
 		})
 		return
 	}
@@ -211,15 +213,17 @@ func Login(c *gin.Context) {
 
 // @Summary		修改用户密码
 // @Description	修改用户密码(修改完前端请删掉token并跳转登录页面)
-// @Tags			auth
+// @Tags			profile-update
 // @Accept			json
 // @Produce		json
-// @Param			request	body		dto.UpdatePasswordRequest						true	"注册请求"
-// @Success		200		{object}	dto.Response	"登录成功"
-// @Failure		400		{object}	dto.Response							"请求参数错误"
-// @Failure		403		{object}	dto.Response							"认证失败"
-// @Failure		500		{object}	dto.Response							"服务器错误"
-// @Router			/api/auth/profile/update/password [put]
+// @Param			request	body		dto.UpdatePasswordRequest	true	"修改密码请求"
+// @Success		200		{object}	dto.Response				"修改密码成功"
+// @Failure		400		{object}	dto.Response				"请求参数错误"
+// @Failure		401		{object}	dto.Response				"未登录"
+// @Failure		403		{object}	dto.Response				"认证失败"
+// @Failure		404		{object}	dto.Response				"用户不存在"
+// @Failure		500		{object}	dto.Response				"服务器错误"
+// @Router			/api/profile/update/password [put]
 func UpdatePassword(c *gin.Context) {
 	var req dto.UpdatePasswordRequest
 	var err error
@@ -227,7 +231,7 @@ func UpdatePassword(c *gin.Context) {
 	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.Response{
 			Code:    http.StatusBadRequest, //400
-			Message: "请求参数错误",
+			Message: "请求参数错误:" + err.Error(),
 		})
 		return
 	}
@@ -276,6 +280,24 @@ func UpdatePassword(c *gin.Context) {
 		}
 		return
 	}
+
+	ok := func() bool {
+		if user.PasswordUpdatedAt == nil {
+			return true
+		} else {
+			return time.Since(*user.PasswordUpdatedAt) > config.PasswordUpdatedInterval
+		}
+	}()
+
+	if !ok {
+		tx.Rollback()
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden, //403
+			Message: "修改密码间隔过短",
+		})
+		return
+	}
+
 	err = utils.ComparePassword(user.Password, req.OldPassword)
 	if err != nil {
 		tx.Rollback()
@@ -295,8 +317,10 @@ func UpdatePassword(c *gin.Context) {
 		})
 		return
 	}
+	now := time.Now()
 	updates := make(map[string]interface{})
 	updates["password"] = hashedPassword
+	updates["password_updated_at"] = &now
 	if err = tx.Model(&user).Updates(updates).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, dto.Response{
@@ -310,7 +334,7 @@ func UpdatePassword(c *gin.Context) {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, dto.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "提交失败：" + err.Error(),
+			Message: "提交Update请求失败：" + err.Error(),
 		})
 		return
 	}
@@ -318,5 +342,239 @@ func UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.Response{
 		Code:    http.StatusOK,
 		Message: "修改密码成功，已退出登录，请重新登陆",
+	})
+}
+
+// @Summary		修改用户名
+// @Description	修改用户名
+// @Tags			profile-update
+// @Accept			json
+// @Produce		json
+// @Param			request	body		dto.UpdateUsernameRequest	true	"修改用户名请求"
+// @Success		200		{object}	dto.Response				"修改用户名成功"
+// @Failure		400		{object}	dto.Response				"请求参数错误"
+// @Failure		401		{object}	dto.Response				"未登录"
+// @Failure		403		{object}	dto.Response				"认证失败"
+// @Failure		404		{object}	dto.Response				"用户不存在"
+// @Failure		500		{object}	dto.Response				"服务器错误"
+// @Router			/api/profile/update/username [put]
+func UpdateUsername(c *gin.Context) {
+	var req dto.UpdateUsernameRequest
+	var err error
+
+	if err = c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "请求参数错误:" + err.Error(),
+		})
+		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+
+	var user models.User
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	result := tx.Set("gorm:query_option", "FOR UPDATE").First(&user, userId)
+
+	err = result.Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound, //404
+				Message: "用户不存在",
+			})
+		} else {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, dto.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "数据库查询失败：" + err.Error(),
+			})
+		}
+		return
+	}
+
+	ok := func() bool {
+		if user.UsernameUpdatedAt == nil {
+			return true
+		} else {
+			return time.Since(*user.UsernameUpdatedAt) > config.UsernameUpdatedInterval
+		}
+	}()
+
+	if !ok {
+		tx.Rollback()
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden, //403
+			Message: "修改用户名间隔过短",
+		})
+		return
+	}
+
+	now := time.Now()
+	updates := make(map[string]interface{})
+	updates["username"] = req.NewUsername
+	updates["username_updated_at"] = &now
+	if err = tx.Model(&user).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "修改用户名失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "提交Update请求失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "修改用户名成功",
+	})
+}
+
+// @Summary		修改用户头像
+// @Description	修改用户头像
+// @Tags			profile-update
+// @Accept			multipart/form-data
+// @Produce		json
+// @Param			new_head_image	formData	file			true	"新头像"
+// @Success		200				{object}	dto.Response	"登录成功"
+// @Failure		400				{object}	dto.Response	"头像为空"
+// @Failure		401				{object}	dto.Response	"未登录"
+// @Failure		403				{object}	dto.Response	"认证失败"
+// @Failure		404				{object}	dto.Response	"用户不存在"
+// @Failure		500				{object}	dto.Response	"服务器错误"
+// @Router			/api/profile/update/headimage [put]
+func UpdateHeadImage(c *gin.Context) {
+	var req dto.UpdateHeadImageRequest
+	var err error
+
+	if err = c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "请求参数错误:" + err.Error(),
+		})
+		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+
+	if req.NewHeadImage == nil || req.NewHeadImage.Size == 0 {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest, //400
+			Message: "头像为空",
+		})
+		return
+	}
+
+	var user models.User
+
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	result := tx.Set("gorm:query_option", "FOR UPDATE").First(&user, userId)
+
+	err = result.Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound, //404
+				Message: "用户不存在",
+			})
+		} else {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, dto.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "数据库查询失败：" + err.Error(),
+			})
+		}
+		return
+	}
+
+	ok := func() bool {
+		if user.HeadImageUpdatedAt == nil {
+			return true
+		} else {
+			return time.Since(*user.HeadImageUpdatedAt) > config.HeadImageUpdatedInterval
+		}
+	}()
+
+	if !ok {
+		tx.Rollback()
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden, //403
+			Message: "修改头像间隔过短",
+		})
+		return
+	}
+
+	log.Printf("用户:%s(id:%d)上传头像,Size:%d", user.Username, user.ID, req.NewHeadImage.Size)
+	savePath, err := utils.SaveImages(c, req.NewHeadImage)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "图片保存失败：" + err.Error(),
+		})
+		return
+	}
+	now := time.Now()
+	updates := make(map[string]interface{})
+	updates["head_image_path"] = savePath
+	updates["head_image_updated_at"] = &now
+	if err = tx.Model(&user).Updates(updates).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "修改头像失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err = tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError, //500
+			Message: "提交Update请求失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "修改头像成功",
 	})
 }

@@ -96,7 +96,7 @@ func GetEnv(key, def string) string {
 	return def
 }
 
-func GenerateSessionSercet(keyLength int) ([]byte, error) {
+func GenerateSercet(keyLength int) ([]byte, error) {
 	key := make([]byte, keyLength)
 	_, err := rand.Read(key)
 

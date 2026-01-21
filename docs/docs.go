@@ -43,7 +43,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.LoginRequest"
+                            "$ref": "#/definitions/dto.LoginRequest"
                         }
                     }
                 ],
@@ -59,7 +59,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.LoginData"
+                                            "$ref": "#/definitions/dto.AuthData"
                                         }
                                     }
                                 }
@@ -107,7 +107,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterRequest"
+                            "$ref": "#/definitions/dto.RegisterRequest"
                         }
                     }
                 ],
@@ -123,7 +123,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.RegisterData"
+                                            "$ref": "#/definitions/dto.AuthData"
                                         }
                                     }
                                 }
@@ -151,172 +151,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/books": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "按条件分页查询图书(顺序书名作者和简介)。 注意：\n1.默认每条最多30字。（主要是针对于简介）\n2.不能单独使用通配符（%和_，简单理解为mysql的正则表达式就ok），否则清空搜索。\n3.如果有%和_的查询会转义。\n4.实际效果如果三个参数都传，是返回符合这三个效果\n5.按更新时间倒序（最近修改的书在前）\n6.如果查询结果为空，返回状态码也是200，但是data为空",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "books"
-                ],
-                "summary": "获取图书列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "按书名模糊查询",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "按作者模糊查询",
-                        "name": "author",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "按简介模糊查询",
-                        "name": "summary",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "查询成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/models.Book"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "数据库查询失败",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "添加新图书(需要管理员权限)",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "books"
-                ],
-                "summary": "创建图书",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "书名",
-                        "name": "title",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "作者",
-                        "name": "author",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "简介",
-                        "name": "summary",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "封面图片",
-                        "name": "cover",
-                        "in": "formData"
-                    },
-                    {
-                        "minimum": 0,
-                        "type": "integer",
-                        "description": "初始库存",
-                        "name": "initial_stock",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "创建成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.Book"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "409": {
-                        "description": "图书已存在",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/books/{book_id}": {
+        "/api/profile/update/headimage": {
             "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "通过book_id修改图书信息（管理员权限）",
+                "description": "修改用户头像",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -324,83 +161,45 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "profile-update"
                 ],
-                "summary": "更新图书",
+                "summary": "修改用户头像",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "图书ID",
-                        "name": "book_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "新书名",
-                        "name": "title",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "新作者",
-                        "name": "author",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "新简介",
-                        "name": "summary",
-                        "in": "formData"
-                    },
-                    {
                         "type": "file",
-                        "description": "新封面",
-                        "name": "cover",
-                        "in": "formData"
-                    },
-                    {
-                        "minimum": 0,
-                        "type": "integer",
-                        "description": "当前库存",
-                        "name": "stock",
-                        "in": "formData"
-                    },
-                    {
-                        "minimum": 0,
-                        "type": "integer",
-                        "description": "总库存",
-                        "name": "total_stock",
-                        "in": "formData"
+                        "description": "新头像",
+                        "name": "new_head_image",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "登录成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.Book"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "400": {
-                        "description": "参数错误",
+                        "description": "头像为空",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
-                        "description": "图书不存在",
+                        "description": "用户不存在",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -412,47 +211,37 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
+            }
+        },
+        "/api/profile/update/password": {
+            "put": {
+                "description": "修改用户密码(修改完前端请删掉token并跳转登录页面)",
+                "consumes": [
+                    "application/json"
                 ],
-                "description": "通过book_id删除图书(需要管理员权限)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "profile-update"
                 ],
-                "summary": "删除图书",
+                "summary": "修改用户密码",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "图书ID",
-                        "name": "book_id",
-                        "in": "path",
-                        "required": true
+                        "description": "修改密码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePasswordRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "删除成功",
+                        "description": "修改密码成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.Book"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "400": {
@@ -461,14 +250,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/dto.Response"
                         }
                     },
-                    "404": {
-                        "description": "图书不存在",
+                    "401": {
+                        "description": "未登录",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
                     },
-                    "409": {
-                        "description": "图书借阅中",
+                    "403": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -482,14 +277,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/borrows": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "创建借阅记录 (return_at 初始为 空)",
+        "/api/profile/update/username": {
+            "put": {
+                "description": "修改用户名",
                 "consumes": [
                     "application/json"
                 ],
@@ -497,159 +287,47 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "borrows"
+                    "profile-update"
                 ],
-                "summary": "借阅图书",
+                "summary": "修改用户名",
                 "parameters": [
                     {
-                        "description": "借阅请求",
+                        "description": "修改用户名请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.FindBookRequest"
+                            "$ref": "#/definitions/dto.UpdateUsernameRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "借阅成功",
+                        "description": "修改用户名成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.BorrowRecord"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "400": {
-                        "description": "参数错误",
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "认证失败",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
                     },
                     "404": {
-                        "description": "图书不存在",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "409": {
-                        "description": "库存不足",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "数据库错误",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/borrows/return": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "更新借阅状态 主要是(return_at 改为非空)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "borrows"
-                ],
-                "summary": "归还图书",
-                "parameters": [
-                    {
-                        "description": "归还请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.FindBookRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "归还成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.BorrowRecord"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "借阅记录不存在",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "409": {
-                        "description": "馆内库存溢出",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "数据库错误",
-                        "schema": {
-                            "$ref": "#/definitions/dto.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/logout": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "用户登出",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "用户登出",
-                "responses": {
-                    "200": {
-                        "description": "登出成功",
+                        "description": "用户不存在",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -665,124 +343,57 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Book": {
-            "description": "书籍信息",
+        "dto.AuthData": {
             "type": "object",
             "properties": {
-                "author": {
-                    "description": "作者",
-                    "type": "string"
-                },
-                "book_id": {
-                    "description": "图书ID minimum(1)",
+                "expires_at": {
+                    "description": "有效期，24h",
                     "type": "integer"
                 },
-                "cover_path": {
-                    "description": "封面路径",
+                "token": {
+                    "description": "JWT Token",
                     "type": "string"
                 },
-                "created_at": {
-                    "description": "创建时间 (RFC3339)",
-                    "type": "string"
-                },
-                "initial_stock": {
-                    "description": "初始库存",
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "stock": {
-                    "description": "现有库存",
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "summary": {
-                    "description": "简介",
-                    "type": "string"
-                },
-                "title": {
-                    "description": "书名",
-                    "type": "string"
-                },
-                "total_stock": {
-                    "description": "总库存",
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "updated_at": {
-                    "description": "更新时间 (RFC3339)",
-                    "type": "string"
+                "user": {
+                    "description": "用户",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CommonUserData"
+                        }
+                    ]
                 }
             }
         },
-        "models.BorrowRecord": {
-            "description": "借阅记录",
+        "dto.CommonUserData": {
             "type": "object",
             "properties": {
-                "book_id": {
-                    "description": "图书ID minimum(1)",
+                "group": {
+                    "description": "权限组",
+                    "type": "string"
+                },
+                "head_image_path": {
+                    "description": "头像路径",
+                    "type": "string"
+                },
+                "select_coin": {
+                    "description": "抽卡货币",
                     "type": "integer"
                 },
-                "borrow_at": {
-                    "description": "借书时间 (RFC3339)",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "创建时间 (RFC3339)",
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "description": "删除时间 (RFC3339)",
-                    "type": "string"
-                },
-                "record_id": {
-                    "description": "记录ID minimum(1)",
+                "strength_coin": {
+                    "description": "强化货币",
                     "type": "integer"
-                },
-                "return_at": {
-                    "description": "归还时间 (RFC3339)",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "borrowed or returned",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "更新时间 (RFC3339)",
-                    "type": "string"
                 },
                 "user_id": {
-                    "description": "用户ID minimum(1)",
-                    "type": "integer"
-                }
-            }
-        },
-        "models.FindBookRequest": {
-            "description": "包含图书ID的请求",
-            "type": "object",
-            "required": [
-                "book_id"
-            ],
-            "properties": {
-                "book_id": {
-                    "description": "图书ID minimum(1)",
-                    "type": "integer"
-                }
-            }
-        },
-        "models.LoginData": {
-            "description": "登录返回Data结构体",
-            "type": "object",
-            "properties": {
-                "user_group": {
-                    "description": "user or admin",
+                    "description": "用户ID",
                     "type": "integer"
                 },
                 "username": {
+                    "description": "用户名",
                     "type": "string"
                 }
             }
         },
-        "models.LoginRequest": {
+        "dto.LoginRequest": {
             "description": "登录信息",
             "type": "object",
             "required": [
@@ -798,20 +409,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.RegisterData": {
-            "description": "注册返回Data结构体",
-            "type": "object",
-            "properties": {
-                "user_id": {
-                    "description": "用户ID minimum(1)",
-                    "type": "integer"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RegisterRequest": {
+        "dto.RegisterRequest": {
             "description": "注册信息",
             "type": "object",
             "required": [
@@ -847,13 +445,38 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+        },
+        "dto.UpdatePasswordRequest": {
+            "description": "修改密码",
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 6
+                },
+                "old_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateUsernameRequest": {
+            "description": "修改用户名",
+            "type": "object",
+            "required": [
+                "new_username"
+            ],
+            "properties": {
+                "new_username": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
+                }
+            }
         }
     }
 }`
