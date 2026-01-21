@@ -14,8 +14,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
+const (
 	DefualtSqlSafeLikeKeyword = 30
+	TokenExpirationTime       = 24 * time.Hour
 )
 
 func Hashtool(key string) (string, error) {

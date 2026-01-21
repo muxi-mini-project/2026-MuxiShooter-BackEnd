@@ -7,6 +7,7 @@ import (
 
 type User struct {
 	ID                 uint              `gorm:"primaryKey;autoIncrement" json:"user_id"`
+	TokenVersion       uint64            `gorm:"default:0" json:"token_version"`
 	Username           string            `gorm:"unique;not null" json:"username"`
 	UsernameUpdatedAt  *time.Time        `json:"username_updated_at"`
 	Password           string            `gorm:"not null" json:"-"`

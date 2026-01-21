@@ -3,11 +3,14 @@ package middleware
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
 	"MuXi/2026-MuxiShooter-Backend/dto"
+	"MuXi/2026-MuxiShooter-Backend/models"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -54,11 +57,20 @@ func JWTAuth() gin.HandlerFunc {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			userIDValue, uexists := claims["user_id"]
 			groupValue, gexists := claims["group"]
+			tokenVersion, texists := claims["token_version"]
+
+			if !texists {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+					Code:    http.StatusUnauthorized, //401
+					Message: "缺少token版本号",
+				})
+				return
+			}
 
 			if !uexists {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 					Code:    http.StatusUnauthorized, //401
-					Message: "token中缺少用户信息",
+					Message: "token中缺少用户id信息",
 				})
 				return
 			}
@@ -90,8 +102,30 @@ func JWTAuth() gin.HandlerFunc {
 				return
 			}
 
+			var user models.User
+			err = config.DB.Where("id = ?", userID).First(&user).Error
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.AbortWithStatusJSON(http.StatusForbidden, dto.Response{
+					Code:    http.StatusForbidden, //403
+					Message: "用户不存在",
+				})
+				return
+			}
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, dto.Response{
+					Code:    http.StatusInternalServerError, //500
+					Message: "查询数据库失败：" + err.Error(),
+				})
+				return
+			}
+			if tokenVersion != user.TokenVersion {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+					Code:    http.StatusUnauthorized, //401
+					Message: "token版本号错误",
+				})
+				return
+			}
 			c.Set("user_id", userID)
-
 			if gexists {
 				if groupStr, ok := groupValue.(string); ok && groupStr != "" {
 					c.Set("group", groupStr)
