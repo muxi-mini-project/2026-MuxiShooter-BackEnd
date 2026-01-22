@@ -6,6 +6,7 @@ import (
 	models "MuXi/2026-MuxiShooter-Backend/models"
 	utils "MuXi/2026-MuxiShooter-Backend/utils"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -189,16 +190,51 @@ func Login(c *gin.Context) {
 }
 
 // @Summary		用户登出（token版号增加一）
-// @Description	用户登出
+// @Description	用户登出（token版号增加一）
 // @Tags			profile-operation
 // @Produce		json
-// @Success		200		{object}	dto.Response{data=dto.AuthData}	"登出成功"
-// @Failure		400		{object}	dto.Response					"请求参数错误"
-// @Failure		403		{object}	dto.Response					"认证失败"
-// @Failure		500		{object}	dto.Response					"服务器错误"
+// @Success		200	{object}	dto.Response	"登出成功"
+// @Failure		401	{object}	dto.Response	"用户不存在"
+// @Failure		500	{object}	dto.Response	"服务器错误"
 // @Router			/api/profile/operation/logout [get]
 func Logout(c *gin.Context) {
-
+	var err error
+	userId, uexists := c.Get("user_id")
+	if !uexists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+	userID, ok := userId.(uint)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "用户不存在",
+		})
+		return
+	}
+	err = utils.RefreshToken(userID, config.DB)
+	if err != nil {
+		if err == utils.ErrUserNotFound {
+			c.JSON(http.StatusUnauthorized, dto.Response{
+				Code:    http.StatusUnauthorized, //401
+				Message: "用户不存在",
+			})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, dto.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: fmt.Sprintf("服务器错误: %v, 请重试", err),
+			})
+			return
+		}
+	}
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK, //200
+		Message: "登出成功",
+	})
 }
 
 // @Summary		修改用户密码
@@ -209,7 +245,7 @@ func Logout(c *gin.Context) {
 // @Param			request	body		dto.UpdatePasswordRequest	true	"修改密码请求"
 // @Success		200		{object}	dto.Response				"修改密码成功"
 // @Failure		400		{object}	dto.Response				"请求参数错误"
-// @Failure		401		{object}	dto.Response				"未登录"
+// @Failure		401		{object}	dto.Response				"登录状态异常"
 // @Failure		403		{object}	dto.Response				"认证失败"
 // @Failure		404		{object}	dto.Response				"用户不存在"
 // @Failure		500		{object}	dto.Response				"服务器错误"
@@ -235,6 +271,14 @@ func UpdatePassword(c *gin.Context) {
 
 	userId, exists := c.Get("user_id")
 	if !exists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+	userID, ok := userId.(uint)
+	if !ok {
 		c.JSON(http.StatusUnauthorized, dto.Response{
 			Code:    http.StatusUnauthorized, //401
 			Message: "解析后token中缺少用户信息",
@@ -271,7 +315,7 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	ok := func() bool {
+	ok = func() bool {
 		if user.PasswordUpdatedAt == nil {
 			return true
 		} else {
@@ -329,6 +373,8 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
+	utils.RefreshToken(userID, config.DB)
+
 	c.JSON(http.StatusOK, dto.Response{
 		Code:    http.StatusOK,
 		Message: "修改密码成功，已退出登录，请重新登陆",
@@ -343,7 +389,7 @@ func UpdatePassword(c *gin.Context) {
 // @Param			request	body		dto.UpdateUsernameRequest	true	"修改用户名请求"
 // @Success		200		{object}	dto.Response				"修改用户名成功"
 // @Failure		400		{object}	dto.Response				"请求参数错误"
-// @Failure		401		{object}	dto.Response				"未登录"
+// @Failure		401		{object}	dto.Response				"登录状态异常"
 // @Failure		403		{object}	dto.Response				"认证失败"
 // @Failure		404		{object}	dto.Response				"用户不存在"
 // @Failure		500		{object}	dto.Response				"服务器错误"
@@ -451,7 +497,7 @@ func UpdateUsername(c *gin.Context) {
 // @Param			new_head_image	formData	file			true	"新头像"
 // @Success		200				{object}	dto.Response	"登录成功"
 // @Failure		400				{object}	dto.Response	"头像为空"
-// @Failure		401				{object}	dto.Response	"未登录"
+// @Failure		401				{object}	dto.Response	"登录状态异常"
 // @Failure		403				{object}	dto.Response	"认证失败"
 // @Failure		404				{object}	dto.Response	"用户不存在"
 // @Failure		500				{object}	dto.Response	"服务器错误"

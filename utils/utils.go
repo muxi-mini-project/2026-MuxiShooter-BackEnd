@@ -26,6 +26,7 @@ const (
 var (
 	ErrTokenGenerate = errors.New("Token生成失败:")
 	ErrTokenExpired  = errors.New("Token已失效，请重新登陆")
+	ErrUserNotFound  = errors.New("用户不存在")
 )
 
 func Hashtool(key string) (string, error) {
@@ -118,6 +119,7 @@ func GenerateToken(user models.User, jwtSecret []byte) (tokenStr string, expirat
 	expirationTime = time.Now().Add(TokenExpirationTime)
 
 	//创建claims
+	//版号按照对应的来
 	claims := jwt.MapClaims{
 		"user_id":       user.ID,
 		"group":         user.Group,
@@ -131,14 +133,28 @@ func GenerateToken(user models.User, jwtSecret []byte) (tokenStr string, expirat
 
 	tokenStr, err = token.SignedString(jwtSecret)
 	if err != nil {
-		err = errors.New(ErrTokenGenerate.Error() + err.Error())
+		err = fmt.Errorf("%w%w", ErrTokenGenerate, err)
 		return "", expirationTime, err
 	} else {
 		return tokenStr, expirationTime, nil
 	}
 }
 
-func RefreshToken(user models.User, db *gorm.DB,jwtSecret []byte) {
+func RefreshToken(userID uint, db *gorm.DB) error {
 	//只是刷新，不负责生成token，也就是只是递增token版号
-	tx := db.
+	//注意：请确保id有效，否者没法增加对应的token版号
+	result := db.Model(&models.User{}).
+		Set("gorm:query_option", "FOR UPDATE").
+		Where("id = ?", userID).
+		UpdateColumn("token_version", gorm.Expr("token_version + 1"))
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		//检查是否真的更新了记录
+		return ErrUserNotFound
+	}
+
+	return nil
 }

@@ -100,16 +100,12 @@ info:
   contact:
     email: 13930176445@163.com
     name: FireChickenMP4
-  description: |-
-    MuXi Library Management System
-    主要功能：用户登录注册（存在user和admin权限组），对图书的CRUD，可以借书和还书等等
-    其中增删改书籍权限仅限管理员账户，其他功能普通用户可用
-    注意:请设置环境变量DB_PASSWORD为你数据库adminuser（默认为adminuser）的密码
+  description: MuXiShooter
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   termsOfService: http://swagger.io/terms
-  title: MuXi Library Management System
+  title: MuXiShooter
   version: "1.0"
 paths:
   /api/auth/login:
@@ -190,6 +186,27 @@ paths:
       summary: 用户注册
       tags:
       - auth
+  /api/profile/operation/logout:
+    get:
+      description: 用户登出（token版号增加一）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登出成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 用户登出（token版号增加一）
+      tags:
+      - profile-operation
   /api/profile/update/headimage:
     put:
       consumes:
@@ -213,7 +230,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.Response'
         "401":
-          description: 未登录
+          description: 登录状态异常
           schema:
             $ref: '#/definitions/dto.Response'
         "403":
@@ -255,7 +272,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.Response'
         "401":
-          description: 未登录
+          description: 登录状态异常
           schema:
             $ref: '#/definitions/dto.Response'
         "403":
@@ -297,7 +314,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.Response'
         "401":
-          description: 未登录
+          description: 登录状态异常
           schema:
             $ref: '#/definitions/dto.Response'
         "403":

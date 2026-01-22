@@ -151,6 +151,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/profile/operation/logout": {
+            "get": {
+                "description": "用户登出（token版号增加一）",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile-operation"
+                ],
+                "summary": "用户登出（token版号增加一）",
+                "responses": {
+                    "200": {
+                        "description": "登出成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/profile/update/headimage": {
             "put": {
                 "description": "修改用户头像",
@@ -187,7 +219,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "登录状态异常",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -251,7 +283,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "登录状态异常",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -315,7 +347,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "登录状态异常",
                         "schema": {
                             "$ref": "#/definitions/dto.Response"
                         }
@@ -487,8 +519,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "MuXi Library Management System",
-	Description:      "MuXi Library Management System\n主要功能：用户登录注册（存在user和admin权限组），对图书的CRUD，可以借书和还书等等\n其中增删改书籍权限仅限管理员账户，其他功能普通用户可用\n注意:请设置环境变量DB_PASSWORD为你数据库adminuser（默认为adminuser）的密码",
+	Title:            "MuXiShooter",
+	Description:      "MuXiShooter",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	// LeftDelim:        "{{",
