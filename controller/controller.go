@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 )
 
@@ -83,24 +82,12 @@ func Register(c *gin.Context) {
 	}
 
 	//Token过期时间,24h
-	expirationTime := time.Now().Add(config.TokenExpirationTime)
+	token, expirationTime, err := utils.GenerateToken(newUser, config.JWTSecret)
 
-	//创建claims
-	claims := jwt.MapClaims{
-		"user_id":       newUser.ID,
-		"group":         newUser.Group,
-		"token_version": newUser.TokenVersion + 1,
-		"exp":           expirationTime.Unix(),
-		"iat":           time.Now().Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenStr, err := token.SignedString(config.JWTSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "生成Token失败：" + err.Error(),
+			Message: err.Error(),
 		})
 		return
 	}
@@ -117,7 +104,7 @@ func Register(c *gin.Context) {
 				StrengthCoin:  newUser.StrengthCoin,
 				SelectCoin:    newUser.SelectCoin,
 			},
-			Token:     tokenStr,
+			Token:     token,
 			ExpiresAt: expirationTime.Unix(),
 		},
 	})
@@ -173,24 +160,12 @@ func Login(c *gin.Context) {
 	}
 
 	//Token过期时间,24h
-	expirationTime := time.Now().Add(config.TokenExpirationTime)
+	token, expirationTime, err := utils.GenerateToken(user, config.JWTSecret)
 
-	//创建claims
-	claims := jwt.MapClaims{
-		"user_id":       user.ID,
-		"group":         user.Group,
-		"token_version": user.TokenVersion + 1,
-		"exp":           expirationTime.Unix(),
-		"iat":           time.Now().Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenStr, err := token.SignedString(config.JWTSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.Response{
 			Code:    http.StatusInternalServerError, //500
-			Message: "生成Token失败：" + err.Error(),
+			Message: err.Error(),
 		})
 		return
 	}
@@ -207,10 +182,23 @@ func Login(c *gin.Context) {
 				StrengthCoin:  user.StrengthCoin,
 				SelectCoin:    user.SelectCoin,
 			},
-			Token:     tokenStr,
+			Token:     token,
 			ExpiresAt: expirationTime.Unix(),
 		},
 	})
+}
+
+// @Summary		用户登出（token版号增加一）
+// @Description	用户登出
+// @Tags			profile-operation
+// @Produce		json
+// @Success		200		{object}	dto.Response{data=dto.AuthData}	"登出成功"
+// @Failure		400		{object}	dto.Response					"请求参数错误"
+// @Failure		403		{object}	dto.Response					"认证失败"
+// @Failure		500		{object}	dto.Response					"服务器错误"
+// @Router			/api/profile/operation/logout [get]
+func Logout(c *gin.Context) {
+
 }
 
 // @Summary		修改用户密码

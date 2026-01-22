@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"MuXi/2026-MuxiShooter-Backend/models"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -10,13 +12,20 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 const (
 	DefualtSqlSafeLikeKeyword = 30
 	TokenExpirationTime       = 24 * time.Hour
+)
+
+var (
+	ErrTokenGenerate = errors.New("Token生成失败:")
+	ErrTokenExpired  = errors.New("Token已失效，请重新登陆")
 )
 
 func Hashtool(key string) (string, error) {
@@ -102,4 +111,34 @@ func GenerateSercet(keyLength int) ([]byte, error) {
 	_, err := rand.Read(key)
 
 	return key, err
+}
+
+func GenerateToken(user models.User, jwtSecret []byte) (tokenStr string, expirationTime time.Time, err error) {
+	//Token过期时间,24h
+	expirationTime = time.Now().Add(TokenExpirationTime)
+
+	//创建claims
+	claims := jwt.MapClaims{
+		"user_id":       user.ID,
+		"group":         user.Group,
+		"token_version": user.TokenVersion,
+		"exp":           expirationTime.Unix(),
+		"iat":           time.Now().Unix(),
+		"jti":           uuid.New().String(), // JWT ID用于可能存在的单token吊销
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenStr, err = token.SignedString(jwtSecret)
+	if err != nil {
+		err = errors.New(ErrTokenGenerate.Error() + err.Error())
+		return "", expirationTime, err
+	} else {
+		return tokenStr, expirationTime, nil
+	}
+}
+
+func RefreshToken(user models.User, db *gorm.DB,jwtSecret []byte) {
+	//只是刷新，不负责生成token，也就是只是递增token版号
+	tx := db.
 }

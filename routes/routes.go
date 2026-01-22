@@ -27,6 +27,10 @@ func RegisterRoutes(r *gin.Engine) {
 					update.PUT("/username", controller.UpdateUsername)
 					update.PUT("/headimage", controller.UpdateHeadImage)
 				}
+				operation := profile.Group("/operation")
+				{
+					operation.GET("/logout", controller.Logout)
+				}
 			}
 
 			adminGroup := authGroup.Group("/")
