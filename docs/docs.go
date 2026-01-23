@@ -99,7 +99,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "用户注册",
+                "summary": "[non-login]用户注册",
                 "parameters": [
                     {
                         "description": "注册请求",
@@ -509,6 +509,14 @@ const docTemplate = `{
                     "minLength": 3
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "输入你的Bearer Token，格式：Bearer {token}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

@@ -183,7 +183,7 @@ paths:
           description: 服务器错误
           schema:
             $ref: '#/definitions/dto.Response'
-      summary: 用户注册
+      summary: '[non-login]用户注册'
       tags:
       - auth
   /api/profile/operation/logout:
@@ -332,4 +332,10 @@ paths:
       summary: 修改用户名
       tags:
       - profile-update
+securityDefinitions:
+  BearerAuth:
+    description: 输入你的Bearer Token，格式：Bearer {token}
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

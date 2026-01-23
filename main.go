@@ -1,13 +1,17 @@
-//	@title			MuXiShooter
-//	@version		1.0
-//	@description	MuXiShooter
-//	@termsOfService	http://swagger.io/terms
-//	@contact.name	FireChickenMP4
-//	@contact.email	13930176445@163.com
-//	@license.name	MIT
-//	@license.url	https://opensource.org/licenses/MIT
-//	@host			localhost:8080
-//	@BasePath		/api
+//	@title						MuXiShooter
+//	@version					1.0
+//	@description				MuXiShooter
+//	@termsOfService				http://swagger.io/terms
+//	@contact.name				FireChickenMP4
+//	@contact.email				13930176445@163.com
+//	@license.name				MIT
+//	@license.url				https://opensource.org/licenses/MIT
+//	@host						localhost:8080
+//	@BasePath					/api
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				输入你的Bearer Token，格式：Bearer {token}
 
 package main
 
