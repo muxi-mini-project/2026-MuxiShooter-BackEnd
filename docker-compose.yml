@@ -1,0 +1,104 @@
+services:
+  # Go应用服务
+  app:
+    build: .
+    ports:
+      - "8080:8080" # API服务端口
+    environment:
+      # 应用配置
+      - GIN_MODE=${GIN_MODE:-release}
+      - APP_ENV=${APP_ENV:-production}
+
+      # JWT密钥（从环境变量文件注入）
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+      # MySQL数据库连接
+      - DB_HOST=${CONTAINER_DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-myapp_user}
+      # 我在这里稍微说一下
+      # 这个环境变量设置的语法
+      # ${}是引用变量，{}里面的是引用的环境变量（外部导入）
+      # :-是若为空或者未设置就用-后面的默认值
+      - DB_PASSWORD=${CONTAINER_DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-mini}
+
+      # 可选：数据库连接池配置
+      - DB_MAX_IDLE_CONNS=${DB_MAX_IDLE_CONNS:-10}
+      - DB_MAX_OPEN_CONNS=${DB_MAX_OPEN_CONNS:-100}
+      - DB_CONN_MAX_LIFETIME=${DB_CONN_MAX_LIFETIME:-5m}
+    volumes:
+      # 上传文件目录持久化
+      - uploads_volume:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy # 等待MySQL健康后再启动
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s # 给应用更多初始化时间（包括数据库连接）
+
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0 # 或 mysql:5.7
+    platform: linux/amd64 # 如果使用Apple Silicon Mac可能需要指定
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-log-bin # 生产环境可能需要二进制日志，但开发/测试可关闭
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-myapp_db}
+      - MYSQL_USER=${DB_USER:-myapp_user}
+      - MYSQL_PASSWORD=${CONTAINER_DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 可选的初始化脚本
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # 自定义配置
+      # - ./my.cnf:/etc/mysql/conf.d/custom.cnf
+    ports:
+      - "3306:3306" # 主机映射端口，方便本地连接
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p$$MYSQL_ROOT_PASSWORD",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  uploads_volume:
+    driver: local

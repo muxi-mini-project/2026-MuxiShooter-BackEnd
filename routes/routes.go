@@ -2,12 +2,20 @@ package routes
 
 import (
 	"MuXi/2026-MuxiShooter-Backend/controller"
+	"MuXi/2026-MuxiShooter-Backend/dto"
 	"MuXi/2026-MuxiShooter-Backend/middleware"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoutes(r *gin.Engine) {
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, dto.Response{
+			Code:    http.StatusOK, //200
+			Message: "I'm OK.",
+		})
+	})
 	api := r.Group("/api")
 	{
 		auth := api.Group("/auth")

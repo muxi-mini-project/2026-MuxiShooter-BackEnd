@@ -1,0 +1,9 @@
+Key/
+release/
+uploads/
+test/
+.git/
+.gitignore
+README.md
+.dockerignore
+docker-compose.yml
