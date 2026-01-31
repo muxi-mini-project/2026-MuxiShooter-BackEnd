@@ -1,7 +1,7 @@
 services:
   # Go应用服务
   app:
-    build: .
+    image: firechickenmp4/backend-app:latest
     ports:
       - "8080:8080" # API服务端口
     environment:
@@ -31,6 +31,7 @@ services:
     volumes:
       # 上传文件目录持久化
       - uploads_volume:/app/uploads
+    user: "1000:1000"
     depends_on:
       mysql:
         condition: service_healthy # 等待MySQL健康后再启动

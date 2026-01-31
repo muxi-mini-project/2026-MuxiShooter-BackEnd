@@ -7,13 +7,13 @@ ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 
 # 复制依赖文件
-COPY go.mod go.sum ./
+COPY src/go.mod src/go.sum ./
 
 # 下载依赖
 RUN go mod download
 
 # 复制源代码
-COPY . .
+COPY ./src .
 
 # 构建可执行文件（Linux版）
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
@@ -23,6 +23,9 @@ FROM alpine:latest
 
 # 创建应用目录和上传目录
 RUN mkdir -p /app/uploads
+
+# 复制默认头像
+COPY ./uploads/DefaultHeadImg.jpeg /app/uploads/DefaultHeadImg.jpeg
 
 # 安装必要的运行时（如需要CA证书）
 RUN apk --no-cache add ca-certificates tzdata

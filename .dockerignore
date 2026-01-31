@@ -1,7 +1,7 @@
 Key/
 release/
-uploads/
-test/
+# /uploads
+src/test/
 .git/
 .gitignore
 README.md
