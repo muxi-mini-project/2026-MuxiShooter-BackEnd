@@ -2,5 +2,6 @@
 Key/
 release/
 uploads/
+static/
 src/test/
 .env

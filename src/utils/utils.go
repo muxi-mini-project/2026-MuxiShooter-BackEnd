@@ -21,6 +21,7 @@ import (
 const (
 	DefualtSqlSafeLikeKeyword = 30
 	TokenExpirationTime       = 24 * time.Hour
+	uploadDir                 = "uploads"
 )
 
 var (
@@ -49,7 +50,6 @@ func ComparePassword(dbPassword, password string) error {
 }
 
 func SaveImages(c *gin.Context, file *multipart.FileHeader) (string, error) {
-	uploadDir := "uploads"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.Mkdir(uploadDir, 0755)
 	}

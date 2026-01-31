@@ -63,6 +63,7 @@ func main() {
 	//使用gzip传输
 
 	r.Static("/uploads", "./uploads")
+	r.Static("/static", "./static")
 	//gin的Static是Gin框架中用来提供静态文件服务的功能，就像在餐厅里设置一个自助区
 	//让顾客可以自己取用饮料和小食，而不需要每次都找服务员点单。
 

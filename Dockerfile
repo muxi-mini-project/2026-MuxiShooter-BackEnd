@@ -24,8 +24,8 @@ FROM alpine:latest
 # 创建应用目录和上传目录
 RUN mkdir -p /app/uploads
 
-# 复制默认头像
-COPY ./uploads/DefaultHeadImg.jpeg /app/uploads/DefaultHeadImg.jpeg
+# 复制静态文件夹
+COPY ./static /app/static
 
 # 安装必要的运行时（如需要CA证书）
 RUN apk --no-cache add ca-certificates tzdata

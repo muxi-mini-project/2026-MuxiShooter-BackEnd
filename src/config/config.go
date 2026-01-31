@@ -16,7 +16,7 @@ import (
 
 const (
 	NumLimter                = 20
-	DefaultHeadImagePath     = "uploads/DefaultHeadImg.jpeg"
+	DefaultHeadImagePath     = "static/DefaultHeadImg.jpeg"
 	PasswordUpdatedInterval  = 30 * time.Minute
 	UsernameUpdatedInterval  = 24 * time.Hour
 	HeadImageUpdatedInterval = 24 * time.Hour
