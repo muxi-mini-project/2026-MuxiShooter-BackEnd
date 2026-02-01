@@ -1,0 +1,123 @@
+{
+	# 全局配置
+	email 13930176445@163.com #Let's Encrypt通知邮箱
+	admin off #禁用管理api
+	log {
+		# 日志级别
+		level INFO
+		# 日志路径 
+		output file /var/log/caddy/access.log {
+			roll_size 100mb
+			roll_keep 5
+		}
+		format json
+	}
+}
+
+localhost {
+	handle /health {
+		respond "OK" 200
+	}
+}
+
+firechickenmp4.top {
+	handle {
+		respond "403 Forbidden" 403
+	}
+}
+
+"http://47.105.123.226" {
+	# 安全头
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		-Server
+	}
+
+	# API限速
+	handle /api/profile/update/headimage {
+		rate_limit {
+			# 每个ip每分钟最多上传10次
+			zone headimage_upload_zone {
+				key {remote_host}
+				events 10
+				window 1m
+			}
+		}
+		reverse_proxy app:8080 {
+			# 健康检查
+			health_uri /health
+			health_interval 30s
+		
+			# 保持连接
+			transport http {
+				dial_timeout 10s
+				read_timeout 30s
+				write_timeout 30s
+			}
+		}
+	}
+	@api {
+		path /api/*
+	}
+	handle @api {
+		rate_limit {
+			zone api {
+				key {remote_host}
+				events 100
+				window 1m
+			}
+		}
+		reverse_proxy app:8080 {
+			# 健康检查
+			health_uri /health
+			health_interval 30s
+		
+			# 保持连接
+			transport http {
+				dial_timeout 10s
+				read_timeout 30s
+				write_timeout 30s
+			}
+		}
+	}
+
+	# 文件上传目录处理
+	handle_path /uploads/* {
+		root * /app/uploads # 文件根目录
+		file_server # 启用文件服务器
+		header Cache-Control "public, max-age=3600"
+	}
+
+	handle_path /static/* {
+		root * /app/static
+		file_server
+		header Cache-Control "public, max-age=31536000,immutable"
+	}
+
+	# 如果这里地址栏要写/static/xxxx root要设置app而不是app/static,这样会多嵌套一层
+	# 所以相当于是根目录/xxx如果以上都没找到最后会有这个兜底一下
+	# 但是我总感觉这是有点风险的
+	handle {
+		# 这里好像是前端的SPA路由或者静态文件处理
+   		root * /app/static  # 同样指向静态文件目录，因为index.html在这里
+ 	 	file_server
+ 	 	try_files {path} {path}/ /index.html
+	}
+
+	handle_errors {
+		root * /app/static
+
+		@404 {
+			expression {http.error.status_code} == 404
+		}
+		respond @404 "{\"error\":\"Not Found\"}" 404
+		# 我目前还没有这
+
+		file_server
+	}
+
+	# 压缩响应
+	encode gzip
+}
