@@ -31,6 +31,7 @@ services:
     volumes:
       # 上传文件目录持久化
       - uploads_volume:/app/uploads
+      - static_volume:/app/static
     user: "1000:1000"
     depends_on:
       mysql:
@@ -94,6 +95,37 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+  caddy:
+    image: firechickenmp4/my-caddy-with-ratelimit:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./config/Caddyfile:/etc/caddy/Caddyfile
+      - uploads_volume:/app/uploads:ro
+      - static_volume:/app/static:ro
+      # 这里和app挂载同一个docker卷，然后caddy只读就可以了
+    depends_on:
+      - app
+    networks:
+      - app-network
+    healthcheck:
+      test: [
+          "CMD",
+          "wget",
+          "--header=Host: localhost",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1/health",
+        ] # 关键：通过Caddy自身访问已配置的API路由
+      interval: 30s
+      timeout: 10s # Caddy处理可能稍慢，超时设长一点
+      retries: 3
+      start_period: 20s # 给Caddy一定的启动时间
 networks:
   app-network:
     driver: bridge
@@ -102,4 +134,10 @@ volumes:
   mysql_data:
     driver: local
   uploads_volume:
+    driver: local
+  static_volume:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local

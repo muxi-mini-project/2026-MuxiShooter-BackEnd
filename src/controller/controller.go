@@ -578,7 +578,7 @@ func UpdateHeadImage(c *gin.Context) {
 	}
 
 	log.Printf("用户:%s(id:%d)上传头像,Size:%d", user.Username, user.ID, req.NewHeadImage.Size)
-	savePath, err := utils.SaveImages(c, req.NewHeadImage)
+	savePath, err := utils.SaveImages(c, req.NewHeadImage, config.PrefixHeadImg)
 	if err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, dto.Response{

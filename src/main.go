@@ -18,15 +18,12 @@ package main
 import (
 	config "MuXi/2026-MuxiShooter-Backend/config"
 	_ "MuXi/2026-MuxiShooter-Backend/docs"
-	"MuXi/2026-MuxiShooter-Backend/dto"
-	"MuXi/2026-MuxiShooter-Backend/middleware"
 	routes "MuXi/2026-MuxiShooter-Backend/routes"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -49,23 +46,27 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           1 * time.Hour,
 	}))
-	r.Use(middleware.Limiter())
-	r.Use(func(c *gin.Context) {
-		c.Next()
-		if c.Writer.Status() == http.StatusTooManyRequests {
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, dto.Response{
-				Code:    http.StatusTooManyRequests,
-				Message: "请求过于频繁，请稍后重试(1s)",
-			})
-		}
-	})
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	// r.Use(middleware.Limiter())
+	// r.Use(func(c *gin.Context) {
+	// 	c.Next()
+	// 	if c.Writer.Status() == http.StatusTooManyRequests {
+	// 		c.AbortWithStatusJSON(http.StatusTooManyRequests, dto.Response{
+	// 			Code:    http.StatusTooManyRequests,
+	// 			Message: "请求过于频繁，请稍后重试(1s)",
+	// 		})
+	// 	}
+	// })
+	//这边限流器直接扔给Caddy了，go这边不需要非常精细的限流
+	//也不涉及权限组的限流
+	//r.Use(gzip.Gzip(gzip.DefaultCompression))
 	//使用gzip传输
+	//这里用Caddy的gzip压缩就ok了
 
-	r.Static("/uploads", "./uploads")
-	r.Static("/static", "./static")
+	// r.Static("/uploads", "./uploads")
+	// r.Static("/static", "./static")
 	//gin的Static是Gin框架中用来提供静态文件服务的功能，就像在餐厅里设置一个自助区
 	//让顾客可以自己取用饮料和小食，而不需要每次都找服务员点单。
+	//同样,Caddy能干这活
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	routes.RegisterRoutes(r)

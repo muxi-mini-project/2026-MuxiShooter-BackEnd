@@ -20,6 +20,7 @@ const (
 	PasswordUpdatedInterval  = 30 * time.Minute
 	UsernameUpdatedInterval  = 24 * time.Hour
 	HeadImageUpdatedInterval = 24 * time.Hour
+	PrefixHeadImg            = "HeadImg"
 )
 
 var (

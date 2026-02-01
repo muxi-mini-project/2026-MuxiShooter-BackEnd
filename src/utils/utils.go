@@ -49,7 +49,7 @@ func ComparePassword(dbPassword, password string) error {
 	return nil
 }
 
-func SaveImages(c *gin.Context, file *multipart.FileHeader) (string, error) {
+func SaveImages(c *gin.Context, file *multipart.FileHeader, prefix string) (string, error) {
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.Mkdir(uploadDir, 0755)
 	}
@@ -58,7 +58,7 @@ func SaveImages(c *gin.Context, file *multipart.FileHeader) (string, error) {
 	//ext可以提取扩展名
 	timestamp := time.Now().Unix()
 	randomStr := uuid.New().String()[:8]
-	newFileName := fmt.Sprintf("Cover_%d_%s%s", timestamp, randomStr, ext)
+	newFileName := fmt.Sprintf("%s_%d_%s%s", prefix, timestamp, randomStr, ext)
 
 	dst := filepath.Join(uploadDir, newFileName)
 	//连接路径
