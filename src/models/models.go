@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type Pagination struct {
+	Page     int `form:"page" json:"page"`
+	PageSize int `form:"page_size" json:"page_size"`
+	//实际limit
+	Limit int `json:"limit"`
+	//实际offset
+	Offset int `json:"offset"`
+}
+
 type User struct {
 	ID                 uint              `gorm:"primaryKey;autoIncrement" json:"user_id"`
 	TokenVersion       uint64            `gorm:"default:1" json:"token_version"`

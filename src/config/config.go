@@ -21,6 +21,9 @@ const (
 	UsernameUpdatedInterval  = 24 * time.Hour
 	HeadImageUpdatedInterval = 24 * time.Hour
 	PrefixHeadImg            = "HeadImg"
+	DefaultPage              = 1
+	DefaultPageSize          = 20
+	MaxPageSize              = 100
 )
 
 var (

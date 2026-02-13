@@ -20,13 +20,13 @@ localhost {
 	}
 }
 
-firechickenmp4.top {
-	handle {
-		respond "403 Forbidden" 403
-	}
-}
+# firechickenmp4.top {
+# 	handle {
+# 		respond "403 Forbidden" 403
+# 	}
+# }
 
-"http://47.105.123.226" {
+firechickenmp4.top, www.firechickenmp4.top {
 	# 安全头
 	header {
 		X-Content-Type-Options "nosniff"

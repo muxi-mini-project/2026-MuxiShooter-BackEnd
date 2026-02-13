@@ -256,3 +256,49 @@ func Limiter() gin.HandlerFunc {
 	middleware := mgin.NewMiddleware(limiter.New(store, rate))
 	return middleware
 }
+
+func PaginationMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var pagination models.Pagination
+
+		if err := c.ShouldBindQuery(&pagination); err != nil {
+			pagination = models.Pagination{
+				Page:     config.DefaultPage,
+				PageSize: config.DefaultPageSize,
+			}
+		}
+
+		if pagination.Page <= 0 {
+			pagination.Page = config.DefaultPage
+		}
+		if pagination.PageSize <= 0 {
+			pagination.PageSize = config.DefaultPageSize
+		}
+		if pagination.PageSize > config.MaxPageSize {
+			pagination.PageSize = config.MaxPageSize
+		}
+
+		pagination.Limit = pagination.PageSize
+		pagination.Offset = (pagination.Page - 1) * pagination.PageSize
+
+		c.Set("pagination", pagination)
+
+		c.Next()
+	}
+}
+
+func GetPagination(c *gin.Context) models.Pagination {
+	if val, exists := c.Get("pagination"); exists {
+		if p, ok := val.(models.Pagination); ok {
+			return p
+		}
+	}
+
+	//否则返回一个安全的默认值
+	return models.Pagination{
+		Page:     config.DefaultPage,
+		PageSize: config.DefaultPageSize,
+		Limit:    config.DefaultPageSize,
+		Offset:   0,
+	}
+}

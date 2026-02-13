@@ -41,9 +41,17 @@ func RegisterRoutes(r *gin.Engine) {
 				}
 			}
 
-			adminGroup := authGroup.Group("/")
+			adminGroup := authGroup.Group("/admin")
 			adminGroup.Use(middleware.AdminRequired())
 			{
+				getGroup := adminGroup.Group("/get")
+				{
+					paginatedGroup := getGroup.Group("/")
+					paginatedGroup.Use(middleware.PaginationMiddleware())
+					{
+						paginatedGroup.GET("/getusers", controller.GetUsers)
+					}
+				}
 			}
 		}
 	}

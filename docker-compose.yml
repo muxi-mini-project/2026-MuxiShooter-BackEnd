@@ -97,6 +97,7 @@ services:
       start_period: 30s
   caddy:
     image: firechickenmp4/my-caddy-with-ratelimit:latest
+    init: true
     restart: unless-stopped
     ports:
       - "80:80"

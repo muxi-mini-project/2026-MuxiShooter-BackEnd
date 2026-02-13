@@ -33,3 +33,14 @@ type AuthData struct {
 	//有效期，24h
 	ExpiresAt int64 `json:"expires_at"`
 }
+
+type PaginatedData struct {
+	//查询所得列表
+	List interface{} `json:"list"`
+	//返回数据总数
+	Total int64 `json:"total"`
+	//页码
+	Page int `json:"page"`
+	//每页多少
+	PageSize int `json:"page_size"`
+}
