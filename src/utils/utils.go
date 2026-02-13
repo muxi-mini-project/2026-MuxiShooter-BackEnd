@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	DefualtSqlSafeLikeKeyword = 30
-	TokenExpirationTime       = 24 * time.Hour
-	uploadDir                 = "uploads"
+	DefualtSqlSafeLikeKeywordLen = 30
+	TokenExpirationTime          = 24 * time.Hour
+	uploadDir                    = "uploads"
 )
 
 var (
@@ -82,8 +82,8 @@ func RemoveFile(filePath string) error {
 
 func SqlSafeLikeKeyword(input string) string {
 	//默认最多三十字
-	if len(input) > DefualtSqlSafeLikeKeyword {
-		input = input[:DefualtSqlSafeLikeKeyword]
+	if len(input) > DefualtSqlSafeLikeKeywordLen {
+		input = input[:DefualtSqlSafeLikeKeywordLen]
 	}
 
 	//转义%和_ 防止轰炸。。。

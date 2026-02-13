@@ -45,6 +45,20 @@ definitions:
     - password
     - username
     type: object
+  dto.PaginatedData:
+    properties:
+      list:
+        description: 查询所得列表
+      page:
+        description: 页码
+        type: integer
+      page_size:
+        description: 每页多少
+        type: integer
+      total:
+        description: 返回数据总数
+        type: integer
+    type: object
   dto.RegisterRequest:
     description: 注册信息
     properties:
@@ -108,6 +122,53 @@ info:
   title: MuXiShooter
   version: "1.0"
 paths:
+  /api/admin/get/getusers:
+    get:
+      description: |-
+        注: 管理员可用，查询结果是多重模糊搜索叠加的效果
+        以及页码不输入或不合规范自动为第一页，每页多少不输入默认20，最多100
+        如果查询结果不存在则返回切片为空
+        用了id查询的话就一定只是一个确定的，而不是模糊搜索，其他参数就没用了（分页也是）
+      parameters:
+      - description: 用户id
+        in: query
+        name: user_id
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 权限组(user/admin)
+        in: query
+        name: group
+        type: string
+      - description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页多少，默认20，最大100
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PaginatedData'
+              type: object
+        "500":
+          description: 数据库查询失败
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 获取用户列表
+      tags:
+      - admin-get
   /api/auth/login:
     post:
       consumes:
@@ -183,7 +244,7 @@ paths:
           description: 服务器错误
           schema:
             $ref: '#/definitions/dto.Response'
-      summary: '[non-login]用户注册'
+      summary: 用户注册
       tags:
       - auth
   /api/profile/operation/logout:

@@ -618,27 +618,26 @@ func UpdateHeadImage(c *gin.Context) {
 
 // @Summary		获取用户列表
 // @Description	注: 管理员可用，查询结果是多重模糊搜索叠加的效果
-// @Description 以及页码不输入或不合规范自动为第一页，每页多少不输入默认20，最多100
-// @Description 如果查询结果不存在则返回切片为空
-// @Description 用了id查询的话就一定只是一个确定的，而不是模糊搜索，其他参数就没用了（分页也是）
-// @Tags	admin-get
-// @Security		ApiKeyAuth
+// @Description	以及页码不输入或不合规范自动为第一页，每页多少不输入默认20，最多100
+// @Description	如果查询结果不存在则返回切片为空
+// @Description	用了id查询的话就一定只是一个确定的，而不是模糊搜索，其他参数就没用了（分页也是）
+// @Tags			admin-get
 // @Produce		json
-// @Param			id	query		int								false	"用户id"
-// @Param			username	query		string								false	"用户名"
-// @Param			group	query		string								false	"权限组(user/admin)"
-// @Param			page	query		int								false	"页码，默认1"
-// @Param			page_size	query		int								false	"每页多少，默认20，最大100"
-// @Success		200		{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
-// @Failure		500		{object}	dto.Response						"数据库查询失败"
+// @Param			user_id		query		int										false	"用户id"
+// @Param			username	query		string									false	"用户名"
+// @Param			group		query		string									false	"权限组(user/admin)"
+// @Param			page		query		int										false	"页码，默认1"
+// @Param			page_size	query		int										false	"每页多少，默认20，最大100"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
+// @Failure		500			{object}	dto.Response							"数据库查询失败"
 // @Router			/api/admin/get/getusers [get]
 func GetUsers(c *gin.Context) {
 	var err error
 	pagination := middleware.GetPagination(c)
 
-	id := c.Query("id")
-	username := c.Query("username")
-	group := c.Query("group")
+	id := c.Query("user_id")
+	username := utils.SqlSafeLikeKeyword(c.Query("username"))
+	group := utils.SqlSafeLikeKeyword(c.Query("group"))
 
 	var users []models.User
 	var total int64
@@ -651,12 +650,45 @@ func GetUsers(c *gin.Context) {
 			Limit:    config.DefaultPageSize,
 			Offset:   0,
 		}
-		err = config.DB.First(&user, id).Error
+		result := config.DB.First(&user, id)
+		err = result.Error
 		if err != nil {
-
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				total = 0
+			} else {
+				c.JSON(http.StatusInternalServerError, dto.Response{
+					Code:    http.StatusInternalServerError, //500
+					Message: "数据库查询失败：" + err.Error(),
+				})
+				return
+			}
+		} else {
+			total = 1
+		}
+		if total != 0 {
+			users = append(users, user)
 		}
 	} else {
+		result := config.DB.Model(&models.User{})
 		//没id就再查别的，模糊搜索
+		if username != "" {
+			result = result.Where("username LIKE ?", "%"+username+"%")
+		}
+		if group != "" {
+			result = result.Where("group LIKE ?", "%"+group+"%")
+		}
+		result.Count(&total)
+		result.Limit(pagination.Limit).Offset(pagination.Offset).Find(&users)
 	}
 
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "查询成功",
+		Data: dto.PaginatedData{
+			List:     users,
+			Total:    total,
+			Page:     pagination.Page,
+			PageSize: pagination.PageSize,
+		},
+	})
 }

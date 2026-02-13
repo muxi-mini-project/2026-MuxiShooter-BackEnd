@@ -17,6 +17,76 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
+        "/api/admin/get/getusers": {
+            "get": {
+                "description": "注: 管理员可用，查询结果是多重模糊搜索叠加的效果\n以及页码不输入或不合规范自动为第一页，每页多少不输入默认20，最多100\n如果查询结果不存在则返回切片为空\n用了id查询的话就一定只是一个确定的，而不是模糊搜索，其他参数就没用了（分页也是）",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-get"
+                ],
+                "summary": "获取用户列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户id",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "权限组(user/admin)",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少，默认20，最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "查询成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.PaginatedData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "数据库查询失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/login": {
             "post": {
                 "description": "用户登录",
@@ -93,7 +163,7 @@
                 "tags": [
                     "auth"
                 ],
-                "summary": "[non-login]用户注册",
+                "summary": "用户注册",
                 "parameters": [
                     {
                         "description": "注册请求",
@@ -432,6 +502,26 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.PaginatedData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "查询所得列表"
+                },
+                "page": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页多少",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "返回数据总数",
+                    "type": "integer"
                 }
             }
         },
