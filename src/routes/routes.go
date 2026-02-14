@@ -39,6 +39,10 @@ func RegisterRoutes(r *gin.Engine) {
 				{
 					operation.GET("/logout", controller.Logout)
 				}
+				get := profile.Group("/get")
+				{
+					get.GET("/self", controller.GetSelfProfile)
+				}
 			}
 
 			adminGroup := authGroup.Group("/admin")

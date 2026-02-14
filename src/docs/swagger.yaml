@@ -162,6 +162,10 @@ paths:
                 data:
                   $ref: '#/definitions/dto.PaginatedData'
               type: object
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
         "500":
           description: 数据库查询失败
           schema:
@@ -247,6 +251,31 @@ paths:
       summary: 用户注册
       tags:
       - auth
+  /api/profile/get/self:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CommonUserData'
+              type: object
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库查询失败
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 获取用户自身基础信息
+      tags:
+      - profile-get
   /api/profile/operation/logout:
     get:
       description: 用户登出（token版号增加一）

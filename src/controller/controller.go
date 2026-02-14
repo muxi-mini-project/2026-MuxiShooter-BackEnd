@@ -629,6 +629,7 @@ func UpdateHeadImage(c *gin.Context) {
 // @Param			page		query		int										false	"页码，默认1"
 // @Param			page_size	query		int										false	"每页多少，默认20，最大100"
 // @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
+// @Failure		401			{object}	dto.Response							"登录状态异常"
 // @Failure		500			{object}	dto.Response							"数据库查询失败"
 // @Router			/api/admin/get/getusers [get]
 func GetUsers(c *gin.Context) {
@@ -689,6 +690,55 @@ func GetUsers(c *gin.Context) {
 			Total:    total,
 			Page:     pagination.Page,
 			PageSize: pagination.PageSize,
+		},
+	})
+}
+
+// @Summary	获取用户自身基础信息
+// @Tags		profile-get
+// @Produce	json
+// @Success	200	{object}	dto.Response{data=dto.CommonUserData}	"查询成功"
+// @Failure	401	{object}	dto.Response							"登录状态异常"
+// @Failure	500	{object}	dto.Response							"数据库查询失败"
+// @Router		/api/profile/get/self [get]
+func GetSelfProfile(c *gin.Context) {
+	var err error
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized, //401
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+	var user models.User
+
+	err = config.DB.First(&user, userId).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound, //404
+				Message: "用户不存在",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, dto.Response{
+				Code:    http.StatusInternalServerError, //500
+				Message: "数据库查询失败：" + err.Error(),
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "查询成功",
+		Data: dto.CommonUserData{
+			UserID:        user.ID,
+			Username:      user.Username,
+			Group:         user.Group,
+			HeadImagePath: user.HeadImagePath,
+			StrengthCoin:  user.StrengthCoin,
+			SelectCoin:    user.SelectCoin,
 		},
 	})
 }
