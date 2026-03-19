@@ -42,6 +42,12 @@ func RegisterRoutes(r *gin.Engine) {
 				get := profile.Group("/get")
 				{
 					get.GET("/self", controller.GetSelfProfile)
+
+					paginatedGet := get.Group("/")
+					paginatedGet.Use(middleware.PaginationMiddleware())
+					{
+						paginatedGet.GET("/relations", controller.GetSelfRelationsByType)
+					}
 				}
 			}
 

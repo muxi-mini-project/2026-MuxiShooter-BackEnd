@@ -221,6 +221,77 @@
                 }
             }
         },
+        "/api/profile/get/relations": {
+            "get": {
+                "description": "通过query参数type选择查询achievements/skills/items/cards中的一种",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile-get"
+                ],
+                "summary": "按类型获取用户关联数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "关联类型(achievements/skills/items/cards)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少，默认20，最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "查询成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.PaginatedData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库查询失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/profile/get/self": {
             "get": {
                 "produces": [

@@ -742,3 +742,71 @@ func GetSelfProfile(c *gin.Context) {
 		},
 	})
 }
+
+// @Summary		按类型获取用户关联数据
+// @Description	通过query参数type选择查询achievements/skills/items/cards中的一种
+// @Tags			profile-get
+// @Produce		json
+// @Param			type		query		string									true	"关联类型(achievements/skills/items/cards)"
+// @Param			page		query		int										false	"页码，默认1"
+// @Param			page_size	query		int										false	"每页多少，默认20，最大100"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
+// @Failure		400			{object}	dto.Response							"请求参数错误"
+// @Failure		401			{object}	dto.Response							"登录状态异常"
+// @Failure		500			{object}	dto.Response							"数据库查询失败"
+// @Router			/api/profile/get/relations [get]
+func GetSelfRelationsByType(c *gin.Context) {
+	relationTypeStr := c.Query("type")
+	if relationTypeStr == "" {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest,
+			Message: "缺少type参数",
+		})
+		return
+	}
+	
+	relationType, err := ParseUserRelationType(relationTypeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	list, total, err := QueryUserRelationByType(c, relationType)
+	if err != nil {
+		if errors.Is(err, ErrUserIDMissing) || errors.Is(err, ErrUserIDTypeInvalid) {
+			c.JSON(http.StatusUnauthorized, dto.Response{
+				Code:    http.StatusUnauthorized,
+				Message: err.Error(),
+			})
+			return
+		}
+		if errors.Is(err, ErrUnsupportedRelationType) {
+			c.JSON(http.StatusBadRequest, dto.Response{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "数据库查询失败：" + err.Error(),
+		})
+		return
+	}
+
+	pagination := middleware.GetPagination(c)
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "查询成功",
+		Data: dto.PaginatedData{
+			List:     list,
+			Total:    total,
+			Page:     pagination.Page,
+			PageSize: pagination.PageSize,
+		},
+	})
+}

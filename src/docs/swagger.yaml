@@ -251,6 +251,50 @@ paths:
       summary: 用户注册
       tags:
       - auth
+  /api/profile/get/relations:
+    get:
+      description: 通过query参数type选择查询achievements/skills/items/cards中的一种
+      parameters:
+      - description: 关联类型(achievements/skills/items/cards)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页多少，默认20，最大100
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PaginatedData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库查询失败
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 按类型获取用户关联数据
+      tags:
+      - profile-get
   /api/profile/get/self:
     get:
       produces:
