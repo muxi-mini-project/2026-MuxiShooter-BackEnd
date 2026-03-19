@@ -16,6 +16,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	initialAdminUserID uint = 1
+)
+
 // @Summary		用户注册
 // @Description	注册用户
 // @Tags			auth
@@ -704,6 +708,223 @@ func GetUsers(c *gin.Context) {
 			Page:     pagination.Page,
 			PageSize: pagination.PageSize,
 		},
+	})
+}
+
+// @Summary		管理员删除用户
+// @Description	管理员删除用户。ID=1(初始化管理员)不可删除；其他管理员仅可删除普通用户
+// @Tags			admin-operation
+// @Accept			json
+// @Produce		json
+// @Param			request	body		dto.AdminDeleteUserRequest	true	"删除用户请求"
+// @Success		200		{object}	dto.Response					"删除成功"
+// @Failure		400		{object}	dto.Response					"请求参数错误"
+// @Failure		401		{object}	dto.Response					"登录状态异常"
+// @Failure		403		{object}	dto.Response					"权限不足"
+// @Failure		404		{object}	dto.Response					"用户不存在"
+// @Failure		500		{object}	dto.Response					"数据库错误"
+// @Router			/api/admin/operation/deleteuser [delete]
+func DeleteUserByAdmin(c *gin.Context) {
+	var req dto.AdminDeleteUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest,
+			Message: "请求参数错误:" + err.Error(),
+		})
+		return
+	}
+
+	operatorID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+	adminID, ok := operatorID.(uint)
+	if !ok || adminID == 0 {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "用户信息格式错误",
+		})
+		return
+	}
+
+	if req.UserID == initialAdminUserID {
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden,
+			Message: "初始化管理员不可删除",
+		})
+		return
+	}
+
+	var targetUser models.User
+	if err := config.DB.First(&targetUser, req.UserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound,
+				Message: "目标用户不存在",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "数据库查询失败：" + err.Error(),
+		})
+		return
+	}
+
+	if adminID != initialAdminUserID && targetUser.Group != "user" {
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden,
+			Message: "仅初始化管理员可删除管理员账户",
+		})
+		return
+	}
+
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "开启事务失败：" + tx.Error.Error(),
+		})
+		return
+	}
+
+	if err := tx.Delete(&targetUser).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "删除用户失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "提交删除请求失败：" + err.Error(),
+		})
+		return
+	}
+
+	if targetUser.HeadImagePath != "" && targetUser.HeadImagePath != config.DefaultHeadImagePath {
+		if removeErr := utils.RemoveFile(targetUser.HeadImagePath); removeErr != nil {
+			log.Printf("删除用户头像文件失败(user_id:%d,path:%s): %v", targetUser.ID, targetUser.HeadImagePath, removeErr)
+		}
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "删除用户成功",
+	})
+}
+
+// @Summary		管理员修改用户权限组
+// @Description	ID=1(初始化管理员)权限组不可修改；仅ID=1可修改其他用户权限组
+// @Tags			admin-update
+// @Accept			json
+// @Produce		json
+// @Param			request	body		dto.AdminUpdateUserGroupRequest	true	"修改权限组请求"
+// @Success		200		{object}	dto.Response						"修改成功"
+// @Failure		400		{object}	dto.Response						"请求参数错误"
+// @Failure		401		{object}	dto.Response						"登录状态异常"
+// @Failure		403		{object}	dto.Response						"权限不足"
+// @Failure		404		{object}	dto.Response						"用户不存在"
+// @Failure		500		{object}	dto.Response						"数据库错误"
+// @Router			/api/admin/update/usergroup [put]
+func UpdateUserGroupByAdmin(c *gin.Context) {
+	var req dto.AdminUpdateUserGroupRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Response{
+			Code:    http.StatusBadRequest,
+			Message: "请求参数错误:" + err.Error(),
+		})
+		return
+	}
+
+	operatorID, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "解析后token中缺少用户信息",
+		})
+		return
+	}
+	adminID, ok := operatorID.(uint)
+	if !ok || adminID == 0 {
+		c.JSON(http.StatusUnauthorized, dto.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "用户信息格式错误",
+		})
+		return
+	}
+
+	if req.UserID == initialAdminUserID {
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden,
+			Message: "初始化管理员权限组不可修改",
+		})
+		return
+	}
+
+	if adminID != initialAdminUserID {
+		c.JSON(http.StatusForbidden, dto.Response{
+			Code:    http.StatusForbidden,
+			Message: "仅初始化管理员可修改用户权限组",
+		})
+		return
+	}
+
+	var targetUser models.User
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "开启事务失败：" + tx.Error.Error(),
+		})
+		return
+	}
+
+	if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&targetUser, req.UserID).Error; err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dto.Response{
+				Code:    http.StatusNotFound,
+				Message: "目标用户不存在",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "数据库查询失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Model(&targetUser).Update("group", req.NewGroup).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "修改权限组失败：" + err.Error(),
+		})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, dto.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "提交修改请求失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.Response{
+		Code:    http.StatusOK,
+		Message: "修改用户权限组成功",
 	})
 }
 

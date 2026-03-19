@@ -54,6 +54,16 @@ func RegisterRoutes(r *gin.Engine) {
 			adminGroup := authGroup.Group("/admin")
 			adminGroup.Use(middleware.AdminRequired())
 			{
+				operationGroup := adminGroup.Group("/operation")
+				{
+					operationGroup.DELETE("/deleteuser", controller.DeleteUserByAdmin)
+				}
+
+				updateGroup := adminGroup.Group("/update")
+				{
+					updateGroup.PUT("/usergroup", controller.UpdateUserGroupByAdmin)
+				}
+
 				getGroup := adminGroup.Group("/get")
 				{
 					paginatedGroup := getGroup.Group("/")

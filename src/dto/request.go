@@ -34,3 +34,16 @@ type UpdateUsernameRequest struct {
 type UpdateHeadImageRequest struct {
 	NewHeadImage *multipart.FileHeader `form:"new_head_image" binding:"required"`
 }
+
+// @summary		管理员删除用户请求
+// @description	按用户ID删除用户
+type AdminDeleteUserRequest struct {
+	UserID uint `json:"user_id" binding:"required,gt=0"`
+}
+
+// @summary		管理员修改用户权限组请求
+// @description	按用户ID修改权限组，仅支持user/admin
+type AdminUpdateUserGroupRequest struct {
+	UserID   uint   `json:"user_id" binding:"required,gt=0"`
+	NewGroup string `json:"new_group" binding:"required,oneof=user admin"`
+}
