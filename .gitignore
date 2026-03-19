@@ -2,7 +2,6 @@
 Key/
 release/
 uploads/
-static/
 src/test/
 docker-test/
 .env
