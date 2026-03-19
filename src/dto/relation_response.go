@@ -100,6 +100,32 @@ type UserCardRelationPageData struct {
 	PageSize int                    `json:"page_size"`
 }
 
+type CommonRelationResourceData struct {
+	ResourceID   uint   `json:"resource_id"`
+	ResourceName string `json:"resource_name"`
+	Description  string `json:"description"`
+	SkillGroup   string `json:"skill_group,omitempty"`
+	PrqSkillID   uint   `json:"prq_skill_id,omitempty"`
+}
+
+type CommonUserRelationData struct {
+	IsComplete bool                       `json:"is_complete"`
+	CompleteAt *time.Time                 `json:"complete_at,omitempty"`
+	SkillGrade uint                       `json:"skill_grade,omitempty"`
+	Claimed    bool                       `json:"claimed"`
+	ClaimedAt  *time.Time                 `json:"claimed_at,omitempty"`
+	CreatedAt  time.Time                  `json:"created_at"`
+	UpdatedAt  time.Time                  `json:"updated_at"`
+	Resource   CommonRelationResourceData `json:"resource"`
+}
+
+type CommonUserRelationPageData struct {
+	List     []CommonUserRelationData `json:"list"`
+	Total    int64                    `json:"total"`
+	Page     int                      `json:"page"`
+	PageSize int                      `json:"page_size"`
+}
+
 func BuildUserAchievementRelationList(records []models.UserAchievement) []UserAchievementRelationData {
 	result := make([]UserAchievementRelationData, 0, len(records))
 	for _, record := range records {

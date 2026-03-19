@@ -99,6 +99,422 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/get/resources": {
+            "get": {
+                "description": "通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-get"
+                ],
+                "summary": "管理员按类型查询基础资源",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "资源类型(achievements/skills/items/cards)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "资源ID，传入后优先精确查询",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "名称模糊搜索",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "技能组模糊搜索(type=skills有效)",
+                        "name": "skill_group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页多少，默认20，最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "查询成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.PaginatedData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库查询失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/operation/deleteuser": {
+            "delete": {
+                "description": "管理员删除用户。ID=1(初始化管理员)不可删除；其他管理员仅可删除普通用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-user"
+                ],
+                "summary": "管理员删除用户",
+                "parameters": [
+                    {
+                        "description": "删除用户请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminDeleteUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/operation/resources": {
+            "post": {
+                "description": "通过query参数type创建skills/achievements/items/cards中的一种资源\nskills需要额外参数skill_group和prq_skill_id，其他资源只需要公共请求体\ntype=achievements/items/cards body: dto.CommonResourceCreateRequest\ntype=skills body: dto.CommonResourceCreateRequest (optional skill_group, prq_skill_id)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-operation"
+                ],
+                "summary": "管理员按类型创建基础资源",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "资源类型(achievements/skills/items/cards)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "创建请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResourceCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "名称冲突",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "通过query参数type删除skills/achievements/items/cards中的一种资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-resource"
+                ],
+                "summary": "管理员按类型删除基础资源",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "资源类型(achievements/skills/items/cards)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "删除请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminDeleteResourceByTypeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "目标资源不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/update/resources": {
+            "put": {
+                "description": "通过query参数type更新skills/achievements/items/cards中的一种资源\nskills需要额外参数skill_group和prq_skill_id，其他资源只需要公共请求体\ntype=achievements/items/cards body: dto.CommonResourceUpdateRequest\ntype=skills body: dto.CommonResourceUpdateRequest (optional skill_group, prq_skill_id)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-update"
+                ],
+                "summary": "管理员按类型更新基础资源",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "资源类型(achievements/skills/items/cards)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "更新请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommonResourceUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "目标资源不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "名称冲突",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/update/usergroup": {
+            "put": {
+                "description": "ID=1(初始化管理员)权限组不可修改；仅ID=1可修改其他用户权限组",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin-user"
+                ],
+                "summary": "管理员修改用户权限组",
+                "parameters": [
+                    {
+                        "description": "修改权限组请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AdminUpdateUserGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "登录状态异常",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "数据库错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/login": {
             "post": {
                 "description": "用户登录",
@@ -229,7 +645,7 @@ const docTemplate = `{
         },
         "/api/profile/get/relations": {
             "get": {
-                "description": "通过query参数type选择查询achievements/skills/items/cards中的一种\ntype=achievements 时，data.list 为 []dto.UserAchievementRelationData\ntype=skills 时，data.list 为 []dto.UserSkillRelationData\ntype=items 时，data.list 为 []dto.UserItemRelationData\ntype=cards 时，data.list 为 []dto.UserCardRelationData",
+                "description": "通过query参数type选择查询achievements/skills/items/cards中的一种\nskills会返回skill_grade，其他类型没有这个字段\ndata.list: []dto.CommonUserRelationData\nskills entries may additionally include skill_grade",
                 "produces": [
                     "application/json"
                 ],
@@ -260,7 +676,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "查询成功(data.list类型由type决定)",
+                        "description": "查询成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -270,7 +686,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/dto.PaginatedData"
+                                            "$ref": "#/definitions/dto.CommonUserRelationPageData"
                                         }
                                     }
                                 }
@@ -565,17 +981,47 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AchievementBrief": {
+        "dto.AdminDeleteResourceByTypeRequest": {
+            "description": "用于skills/achievements/items/cards的删除（按ID）",
             "type": "object",
+            "required": [
+                "id"
+            ],
             "properties": {
-                "achievement_id": {
+                "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.AdminDeleteUserRequest": {
+            "description": "按用户ID删除用户",
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AdminUpdateUserGroupRequest": {
+            "description": "按用户ID修改权限组，仅支持user/admin",
+            "type": "object",
+            "required": [
+                "new_group",
+                "user_id"
+            ],
+            "properties": {
+                "new_group": {
+                    "type": "string",
+                    "enum": [
+                        "user",
+                        "admin"
+                    ]
                 },
-                "achievement_name": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -597,6 +1043,65 @@ const docTemplate = `{
                             "$ref": "#/definitions/dto.CommonUserData"
                         }
                     ]
+                }
+            }
+        },
+        "dto.CommonRelationResourceData": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "prq_skill_id": {
+                    "type": "integer"
+                },
+                "resource_id": {
+                    "type": "integer"
+                },
+                "resource_name": {
+                    "type": "string"
+                },
+                "skill_group": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CommonResourceCreateRequest": {
+            "description": "用于achievements/items/cards，skills可额外携带技能字段",
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "prq_skill_id": {
+                    "type": "integer"
+                },
+                "skill_group": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CommonResourceUpdateRequest": {
+            "description": "用于achievements/items/cards，skills可额外携带技能字段",
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "prq_skill_id": {
+                    "type": "integer"
+                },
+                "skill_group": {
+                    "type": "string"
                 }
             }
         },
@@ -626,6 +1131,55 @@ const docTemplate = `{
                 "username": {
                     "description": "用户名",
                     "type": "string"
+                }
+            }
+        },
+        "dto.CommonUserRelationData": {
+            "type": "object",
+            "properties": {
+                "claimed": {
+                    "type": "boolean"
+                },
+                "claimed_at": {
+                    "type": "string"
+                },
+                "complete_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "is_complete": {
+                    "type": "boolean"
+                },
+                "resource": {
+                    "$ref": "#/definitions/dto.CommonRelationResourceData"
+                },
+                "skill_grade": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CommonUserRelationPageData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CommonUserRelationData"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -731,193 +1285,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 3
-                }
-            }
-        },
-        "dto.UserAchievementRelationData": {
-            "type": "object",
-            "properties": {
-                "achievement": {
-                    "$ref": "#/definitions/dto.AchievementBrief"
-                },
-                "claimed": {
-                    "type": "boolean"
-                },
-                "claimed_at": {
-                    "type": "string"
-                },
-                "complete_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "is_complete": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UserAchievementRelationPageData": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.UserAchievementRelationData"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.UserCardRelationData": {
-            "type": "object",
-            "properties": {
-                "card": {
-                    "$ref": "#/definitions/dto.CardBrief"
-                },
-                "claimed": {
-                    "type": "boolean"
-                },
-                "claimed_at": {
-                    "type": "string"
-                },
-                "complete_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "is_complete": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UserCardRelationPageData": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.UserCardRelationData"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.UserItemRelationData": {
-            "type": "object",
-            "properties": {
-                "claimed": {
-                    "type": "boolean"
-                },
-                "claimed_at": {
-                    "type": "string"
-                },
-                "complete_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "is_complete": {
-                    "type": "boolean"
-                },
-                "item": {
-                    "$ref": "#/definitions/dto.ItemBrief"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UserItemRelationPageData": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.UserItemRelationData"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.UserSkillRelationData": {
-            "type": "object",
-            "properties": {
-                "claimed": {
-                    "type": "boolean"
-                },
-                "claimed_at": {
-                    "type": "string"
-                },
-                "complete_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "is_complete": {
-                    "type": "boolean"
-                },
-                "skill": {
-                    "$ref": "#/definitions/dto.SkillBrief"
-                },
-                "skill_grade": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UserSkillRelationPageData": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.UserSkillRelationData"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
                 }
             }
         }

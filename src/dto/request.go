@@ -70,6 +70,15 @@ type AdminCreateCardRequest struct {
 	Description string `json:"description"`
 }
 
+// @summary		通用资源创建请求
+// @description	用于achievements/items/cards，skills可额外携带技能字段
+type CommonResourceCreateRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	SkillGroup  string `json:"skill_group,omitempty"`
+	PrqSkillID  uint   `json:"prq_skill_id,omitempty"`
+}
+
 type AdminUpdateAchievementRequest struct {
 	ID          uint    `json:"id" binding:"required,gt=0"`
 	Name        *string `json:"name"`
@@ -94,6 +103,16 @@ type AdminUpdateCardRequest struct {
 	ID          uint    `json:"id" binding:"required,gt=0"`
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+}
+
+// @summary		通用资源更新请求
+// @description	用于achievements/items/cards，skills可额外携带技能字段
+type CommonResourceUpdateRequest struct {
+	ID          uint    `json:"id"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	SkillGroup  *string `json:"skill_group,omitempty"`
+	PrqSkillID  *uint   `json:"prq_skill_id,omitempty"`
 }
 
 // @summary		管理员按类型删除基础资源请求
