@@ -6,8 +6,10 @@ on:
       - main
     paths:
       - Dockerfile
-      # - docker-compose.yml
+      - docker-compose.yml
       - src/**
+      - config/**
+      - Caddy/**
       - src/go.mod
       - src/go.sum
       - .github/workflows/docker-publish.yml
