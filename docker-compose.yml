@@ -1,7 +1,7 @@
 services:
   # Go应用服务
   app:
-    image: firechickenmp4/backend-app:latest
+    image: firechickenmp4/backend-app:${IMAGE_TAG:-latest}
     ports:
       - "8080:8080" # API服务端口
     environment:
