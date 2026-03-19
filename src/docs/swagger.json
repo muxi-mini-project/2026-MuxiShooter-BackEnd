@@ -95,7 +95,7 @@
         },
         "/api/admin/get/resources": {
             "get": {
-                "description": "通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询\ntype可选值：achievements、skills、items、cards",
+                "description": "通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询\ntype可选值：achievements、skills、items、cards\ntype=achievements 时，data.list 为 []models.Achievement\ntype=skills 时，data.list 为 []models.Skill\ntype=items 时，data.list 为 []models.Item\ntype=cards 时，data.list 为 []models.Card",
                 "produces": [
                     "application/json"
                 ],
@@ -144,7 +144,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "查询成功",
+                        "description": "type=cards 查询成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -248,7 +248,7 @@
         },
         "/api/admin/operation/resources": {
             "post": {
-                "description": "通过query参数type创建skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminCreateAchievementRequest\ntype=skills 请求体：dto.AdminCreateSkillRequest\ntype=items 请求体：dto.AdminCreateItemRequest\ntype=cards 请求体：dto.AdminCreateCardRequest",
+                "description": "通过query参数type创建skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminCreateAchievementRequest\ntype=skills 请求体：dto.AdminCreateSkillRequest\ntype=items 请求体：dto.AdminCreateItemRequest\ntype=cards 请求体：dto.AdminCreateCardRequest\ntype=achievements 时，data 为 models.Achievement\ntype=skills 时，data 为 models.Skill\ntype=items 时，data 为 models.Item\ntype=cards 时，data 为 models.Card",
                 "consumes": [
                     "application/json"
                 ],
@@ -279,9 +279,21 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "type=cards 创建成功",
                         "schema": {
-                            "$ref": "#/definitions/dto.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Card"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -376,7 +388,7 @@
         },
         "/api/admin/update/resources": {
             "put": {
-                "description": "通过query参数type更新skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminUpdateAchievementRequest\ntype=skills 请求体：dto.AdminUpdateSkillRequest\ntype=items 请求体：dto.AdminUpdateItemRequest\ntype=cards 请求体：dto.AdminUpdateCardRequest",
+                "description": "通过query参数type更新skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminUpdateAchievementRequest\ntype=skills 请求体：dto.AdminUpdateSkillRequest\ntype=items 请求体：dto.AdminUpdateItemRequest\ntype=cards 请求体：dto.AdminUpdateCardRequest\ntype=achievements 时，data 为 models.Achievement\ntype=skills 时，data 为 models.Skill\ntype=items 时，data 为 models.Item\ntype=cards 时，data 为 models.Card",
                 "consumes": [
                     "application/json"
                 ],
@@ -407,9 +419,21 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "type=cards 更新成功",
                         "schema": {
-                            "$ref": "#/definitions/dto.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Card"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1465,6 +1489,93 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.Achievement": {
+            "type": "object",
+            "properties": {
+                "achievement_id": {
+                    "type": "integer"
+                },
+                "achievement_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Card": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "skill_id": {
+                    "type": "integer"
+                },
+                "skill_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Item": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "skill_id": {
+                    "type": "integer"
+                },
+                "skill_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Skill": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "prq_skill_id": {
+                    "type": "integer"
+                },
+                "skill_group": {
+                    "description": "Front End Products Design Operations Apple Android",
+                    "type": "string"
+                },
+                "skill_id": {
+                    "type": "integer"
+                },
+                "skill_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         }

@@ -931,6 +931,10 @@ func UpdateUserGroupByAdmin(c *gin.Context) {
 // @Summary		管理员按类型查询基础资源
 // @Description	通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询
 // @Description	type可选值：achievements、skills、items、cards
+// @Description	type=achievements 时，data.list 为 []models.Achievement
+// @Description	type=skills 时，data.list 为 []models.Skill
+// @Description	type=items 时，data.list 为 []models.Item
+// @Description	type=cards 时，data.list 为 []models.Card
 // @Tags			admin-get
 // @Produce		json
 // @Param			type		query		string									true	"资源类型(achievements/skills/items/cards)"
@@ -939,7 +943,10 @@ func UpdateUserGroupByAdmin(c *gin.Context) {
 // @Param			skill_group	query		string									false	"技能组模糊搜索(type=skills有效)"
 // @Param			page		query		int										false	"页码，默认1"
 // @Param			page_size	query		int										false	"每页多少，默认20，最大100"
-// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"type=achievements 查询成功"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"type=skills 查询成功"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"type=items 查询成功"
+// @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"type=cards 查询成功"
 // @Failure		400			{object}	dto.Response							"请求参数错误"
 // @Failure		401			{object}	dto.Response							"登录状态异常"
 // @Failure		500			{object}	dto.Response							"数据库查询失败"
@@ -986,16 +993,23 @@ func GetResourcesByTypeForAdmin(c *gin.Context) {
 // @Description	type=skills 请求体：dto.AdminCreateSkillRequest
 // @Description	type=items 请求体：dto.AdminCreateItemRequest
 // @Description	type=cards 请求体：dto.AdminCreateCardRequest
+// @Description	type=achievements 时，data 为 models.Achievement
+// @Description	type=skills 时，data 为 models.Skill
+// @Description	type=items 时，data 为 models.Item
+// @Description	type=cards 时，data 为 models.Card
 // @Tags			admin-operation
 // @Accept			json
 // @Produce		json
-// @Param			type	query		string						true	"资源类型(achievements/skills/items/cards)"
-// @Param			request	body		dto.AdminCreateSkillRequest	true	"创建请求体(示例以skills为准)"
-// @Success		200		{object}	dto.Response				"创建成功"
-// @Failure		400		{object}	dto.Response				"请求参数错误"
-// @Failure		401		{object}	dto.Response				"登录状态异常"
-// @Failure		409		{object}	dto.Response				"名称冲突"
-// @Failure		500		{object}	dto.Response				"数据库错误"
+// @Param			type	query		string									true	"资源类型(achievements/skills/items/cards)"
+// @Param			request	body		dto.AdminCreateSkillRequest				true	"创建请求体(示例以skills为准)"
+// @Success		200		{object}	dto.Response{data=models.Achievement}	"type=achievements 创建成功"
+// @Success		200		{object}	dto.Response{data=models.Skill}			"type=skills 创建成功"
+// @Success		200		{object}	dto.Response{data=models.Item}			"type=items 创建成功"
+// @Success		200		{object}	dto.Response{data=models.Card}			"type=cards 创建成功"
+// @Failure		400		{object}	dto.Response							"请求参数错误"
+// @Failure		401		{object}	dto.Response							"登录状态异常"
+// @Failure		409		{object}	dto.Response							"名称冲突"
+// @Failure		500		{object}	dto.Response							"数据库错误"
 // @Router			/api/admin/operation/resources [post]
 func CreateResourceByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)
@@ -1041,17 +1055,24 @@ func CreateResourceByTypeForAdmin(c *gin.Context) {
 // @Description	type=skills 请求体：dto.AdminUpdateSkillRequest
 // @Description	type=items 请求体：dto.AdminUpdateItemRequest
 // @Description	type=cards 请求体：dto.AdminUpdateCardRequest
+// @Description	type=achievements 时，data 为 models.Achievement
+// @Description	type=skills 时，data 为 models.Skill
+// @Description	type=items 时，data 为 models.Item
+// @Description	type=cards 时，data 为 models.Card
 // @Tags			admin-update
 // @Accept			json
 // @Produce		json
-// @Param			type	query		string						true	"资源类型(achievements/skills/items/cards)"
-// @Param			request	body		dto.AdminUpdateSkillRequest	true	"更新请求体(示例以skills为准)"
-// @Success		200		{object}	dto.Response				"更新成功"
-// @Failure		400		{object}	dto.Response				"请求参数错误"
-// @Failure		401		{object}	dto.Response				"登录状态异常"
-// @Failure		404		{object}	dto.Response				"目标资源不存在"
-// @Failure		409		{object}	dto.Response				"名称冲突"
-// @Failure		500		{object}	dto.Response				"数据库错误"
+// @Param			type	query		string									true	"资源类型(achievements/skills/items/cards)"
+// @Param			request	body		dto.AdminUpdateSkillRequest				true	"更新请求体(示例以skills为准)"
+// @Success		200		{object}	dto.Response{data=models.Achievement}	"type=achievements 更新成功"
+// @Success		200		{object}	dto.Response{data=models.Skill}			"type=skills 更新成功"
+// @Success		200		{object}	dto.Response{data=models.Item}			"type=items 更新成功"
+// @Success		200		{object}	dto.Response{data=models.Card}			"type=cards 更新成功"
+// @Failure		400		{object}	dto.Response							"请求参数错误"
+// @Failure		401		{object}	dto.Response							"登录状态异常"
+// @Failure		404		{object}	dto.Response							"目标资源不存在"
+// @Failure		409		{object}	dto.Response							"名称冲突"
+// @Failure		500		{object}	dto.Response							"数据库错误"
 // @Router			/api/admin/update/resources [put]
 func UpdateResourceByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)

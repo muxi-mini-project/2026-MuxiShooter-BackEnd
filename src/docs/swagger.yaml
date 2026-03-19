@@ -331,6 +331,63 @@ definitions:
       total:
         type: integer
     type: object
+  models.Achievement:
+    properties:
+      achievement_id:
+        type: integer
+      achievement_name:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Card:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      skill_id:
+        type: integer
+      skill_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Item:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      skill_id:
+        type: integer
+      skill_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Skill:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      prq_skill_id:
+        type: integer
+      skill_group:
+        description: Front End Products Design Operations Apple Android
+        type: string
+      skill_id:
+        type: integer
+      skill_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -400,6 +457,10 @@ paths:
       description: |-
         通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询
         type可选值：achievements、skills、items、cards
+        type=achievements 时，data.list 为 []models.Achievement
+        type=skills 时，data.list 为 []models.Skill
+        type=items 时，data.list 为 []models.Item
+        type=cards 时，data.list 为 []models.Card
       parameters:
       - description: 资源类型(achievements/skills/items/cards)
         in: query
@@ -430,7 +491,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: 查询成功
+          description: type=cards 查询成功
           schema:
             allOf:
             - $ref: '#/definitions/dto.Response'
@@ -547,6 +608,10 @@ paths:
         type=skills 请求体：dto.AdminCreateSkillRequest
         type=items 请求体：dto.AdminCreateItemRequest
         type=cards 请求体：dto.AdminCreateCardRequest
+        type=achievements 时，data 为 models.Achievement
+        type=skills 时，data 为 models.Skill
+        type=items 时，data 为 models.Item
+        type=cards 时，data 为 models.Card
       parameters:
       - description: 资源类型(achievements/skills/items/cards)
         in: query
@@ -563,9 +628,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: 创建成功
+          description: type=cards 创建成功
           schema:
-            $ref: '#/definitions/dto.Response'
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Card'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -595,6 +665,10 @@ paths:
         type=skills 请求体：dto.AdminUpdateSkillRequest
         type=items 请求体：dto.AdminUpdateItemRequest
         type=cards 请求体：dto.AdminUpdateCardRequest
+        type=achievements 时，data 为 models.Achievement
+        type=skills 时，data 为 models.Skill
+        type=items 时，data 为 models.Item
+        type=cards 时，data 为 models.Card
       parameters:
       - description: 资源类型(achievements/skills/items/cards)
         in: query
@@ -611,9 +685,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: 更新成功
+          description: type=cards 更新成功
           schema:
-            $ref: '#/definitions/dto.Response'
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Card'
+              type: object
         "400":
           description: 请求参数错误
           schema:
