@@ -21,7 +21,7 @@
       "get": {
         "description": "注: 管理员可用，查询结果是多重模糊搜索叠加的效果\n以及页码不输入或不合规范自动为第一页，每页多少不输入默认20，最多100\n如果查询结果不存在则返回切片为空\n用了id查询的话就一定只是一个确定的，而不是模糊搜索，其他参数就没用了（分页也是）",
         "produces": ["application/json"],
-        "tags": ["admin-user"],
+        "tags": ["admin-get"],
         "summary": "获取用户列表",
         "parameters": [
           {
@@ -93,7 +93,7 @@
       "get": {
         "description": "通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询\ntype可选值：achievements、skills、items、cards",
         "produces": ["application/json"],
-        "tags": ["admin-resource"],
+        "tags": ["admin-get"],
         "summary": "管理员按类型查询基础资源",
         "parameters": [
           {
@@ -179,7 +179,7 @@
         "description": "管理员删除用户。ID=1(初始化管理员)不可删除；其他管理员仅可删除普通用户",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["admin-user"],
+        "tags": ["admin-operation"],
         "summary": "管理员删除用户",
         "parameters": [
           {
@@ -237,7 +237,7 @@
         "description": "通过query参数type创建skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminCreateAchievementRequest\ntype=skills 请求体：dto.AdminCreateSkillRequest\ntype=items 请求体：dto.AdminCreateItemRequest\ntype=cards 请求体：dto.AdminCreateCardRequest",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["admin-resource"],
+        "tags": ["admin-operation"],
         "summary": "管理员按类型创建基础资源",
         "parameters": [
           {
@@ -294,7 +294,7 @@
         "description": "通过query参数type删除skills/achievements/items/cards中的一种资源",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["admin-resource"],
+        "tags": ["admin-operation"],
         "summary": "管理员按类型删除基础资源",
         "parameters": [
           {
@@ -353,7 +353,7 @@
         "description": "通过query参数type更新skills/achievements/items/cards中的一种资源\ntype=achievements 请求体：dto.AdminUpdateAchievementRequest\ntype=skills 请求体：dto.AdminUpdateSkillRequest\ntype=items 请求体：dto.AdminUpdateItemRequest\ntype=cards 请求体：dto.AdminUpdateCardRequest",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["admin-resource"],
+        "tags": ["admin-update"],
         "summary": "管理员按类型更新基础资源",
         "parameters": [
           {
@@ -418,7 +418,7 @@
         "description": "ID=1(初始化管理员)权限组不可修改；仅ID=1可修改其他用户权限组",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["admin-user"],
+        "tags": ["admin-update"],
         "summary": "管理员修改用户权限组",
         "parameters": [
           {
@@ -591,7 +591,7 @@
       "get": {
         "description": "通过query参数type选择查询achievements/skills/items/cards中的一种\ntype=achievements 时，data.list 为 []dto.UserAchievementRelationData\ntype=skills 时，data.list 为 []dto.UserSkillRelationData\ntype=items 时，data.list 为 []dto.UserItemRelationData\ntype=cards 时，data.list 为 []dto.UserCardRelationData",
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-get"],
         "summary": "按类型获取用户关联数据",
         "parameters": [
           {
@@ -616,7 +616,7 @@
         ],
         "responses": {
           "200": {
-            "description": "查询成功(data.list类型由type决定)",
+            "description": "type=cards 查询成功",
             "schema": {
               "allOf": [
                 {
@@ -626,7 +626,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/definitions/dto.PaginatedData"
+                      "$ref": "#/definitions/dto.UserCardRelationPageData"
                     }
                   }
                 }
@@ -657,7 +657,7 @@
     "/api/profile/get/self": {
       "get": {
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-get"],
         "summary": "获取用户自身基础信息",
         "responses": {
           "200": {
@@ -697,7 +697,7 @@
       "get": {
         "description": "用户登出（token版号增加一）",
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-operation"],
         "summary": "用户登出（token版号增加一）",
         "responses": {
           "200": {
@@ -726,7 +726,7 @@
         "description": "修改用户头像",
         "consumes": ["multipart/form-data"],
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-update"],
         "summary": "修改用户头像",
         "parameters": [
           {
@@ -782,7 +782,7 @@
         "description": "修改用户密码(修改完前端请删掉token并跳转登录页面)",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-update"],
         "summary": "修改用户密码",
         "parameters": [
           {
@@ -840,7 +840,7 @@
         "description": "修改用户名",
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["profile"],
+        "tags": ["profile-update"],
         "summary": "修改用户名",
         "parameters": [
           {
@@ -895,6 +895,20 @@
     }
   },
   "definitions": {
+    "dto.AchievementBrief": {
+      "type": "object",
+      "properties": {
+        "achievement_id": {
+          "type": "integer"
+        },
+        "achievement_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
     "dto.AdminCreateSkillRequest": {
       "type": "object",
       "required": ["name"],
@@ -991,6 +1005,20 @@
         }
       }
     },
+    "dto.CardBrief": {
+      "type": "object",
+      "properties": {
+        "card_id": {
+          "type": "integer"
+        },
+        "card_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
     "dto.CommonUserData": {
       "type": "object",
       "properties": {
@@ -1016,6 +1044,20 @@
         },
         "username": {
           "description": "用户名",
+          "type": "string"
+        }
+      }
+    },
+    "dto.ItemBrief": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "item_id": {
+          "type": "integer"
+        },
+        "item_name": {
           "type": "string"
         }
       }
@@ -1083,6 +1125,26 @@
         },
         "message": {
           "description": "返回的消息",
+          "type": "string"
+        }
+      }
+    },
+    "dto.SkillBrief": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "prq_skill_id": {
+          "type": "integer"
+        },
+        "skill_group": {
+          "type": "string"
+        },
+        "skill_id": {
+          "type": "integer"
+        },
+        "skill_name": {
           "type": "string"
         }
       }
