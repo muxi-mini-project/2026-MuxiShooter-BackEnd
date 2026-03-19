@@ -717,12 +717,12 @@ func GetUsers(c *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		dto.AdminDeleteUserRequest	true	"删除用户请求"
-// @Success		200		{object}	dto.Response					"删除成功"
-// @Failure		400		{object}	dto.Response					"请求参数错误"
-// @Failure		401		{object}	dto.Response					"登录状态异常"
-// @Failure		403		{object}	dto.Response					"权限不足"
-// @Failure		404		{object}	dto.Response					"用户不存在"
-// @Failure		500		{object}	dto.Response					"数据库错误"
+// @Success		200		{object}	dto.Response				"删除成功"
+// @Failure		400		{object}	dto.Response				"请求参数错误"
+// @Failure		401		{object}	dto.Response				"登录状态异常"
+// @Failure		403		{object}	dto.Response				"权限不足"
+// @Failure		404		{object}	dto.Response				"用户不存在"
+// @Failure		500		{object}	dto.Response				"数据库错误"
 // @Router			/api/admin/operation/deleteuser [delete]
 func DeleteUserByAdmin(c *gin.Context) {
 	var req dto.AdminDeleteUserRequest
@@ -828,12 +828,12 @@ func DeleteUserByAdmin(c *gin.Context) {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		dto.AdminUpdateUserGroupRequest	true	"修改权限组请求"
-// @Success		200		{object}	dto.Response						"修改成功"
-// @Failure		400		{object}	dto.Response						"请求参数错误"
-// @Failure		401		{object}	dto.Response						"登录状态异常"
-// @Failure		403		{object}	dto.Response						"权限不足"
-// @Failure		404		{object}	dto.Response						"用户不存在"
-// @Failure		500		{object}	dto.Response						"数据库错误"
+// @Success		200		{object}	dto.Response					"修改成功"
+// @Failure		400		{object}	dto.Response					"请求参数错误"
+// @Failure		401		{object}	dto.Response					"登录状态异常"
+// @Failure		403		{object}	dto.Response					"权限不足"
+// @Failure		404		{object}	dto.Response					"用户不存在"
+// @Failure		500		{object}	dto.Response					"数据库错误"
 // @Router			/api/admin/update/usergroup [put]
 func UpdateUserGroupByAdmin(c *gin.Context) {
 	var req dto.AdminUpdateUserGroupRequest
@@ -933,16 +933,16 @@ func UpdateUserGroupByAdmin(c *gin.Context) {
 // @Description	type可选值：achievements、skills、items、cards
 // @Tags			admin-get
 // @Produce		json
-// @Param			type		query		string							true	"资源类型(achievements/skills/items/cards)"
-// @Param			id			query		int							false	"资源ID，传入后优先精确查询"
-// @Param			name		query		string							false	"名称模糊搜索"
-// @Param			skill_group	query		string							false	"技能组模糊搜索(type=skills有效)"
-// @Param			page		query		int							false	"页码，默认1"
-// @Param			page_size	query		int							false	"每页多少，默认20，最大100"
+// @Param			type		query		string									true	"资源类型(achievements/skills/items/cards)"
+// @Param			id			query		int										false	"资源ID，传入后优先精确查询"
+// @Param			name		query		string									false	"名称模糊搜索"
+// @Param			skill_group	query		string									false	"技能组模糊搜索(type=skills有效)"
+// @Param			page		query		int										false	"页码，默认1"
+// @Param			page_size	query		int										false	"每页多少，默认20，最大100"
 // @Success		200			{object}	dto.Response{data=dto.PaginatedData}	"查询成功"
-// @Failure		400			{object}	dto.Response						"请求参数错误"
-// @Failure		401			{object}	dto.Response						"登录状态异常"
-// @Failure		500			{object}	dto.Response						"数据库查询失败"
+// @Failure		400			{object}	dto.Response							"请求参数错误"
+// @Failure		401			{object}	dto.Response							"登录状态异常"
+// @Failure		500			{object}	dto.Response							"数据库查询失败"
 // @Router			/api/admin/get/resources [get]
 func GetResourcesByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)
@@ -989,13 +989,13 @@ func GetResourcesByTypeForAdmin(c *gin.Context) {
 // @Tags			admin-operation
 // @Accept			json
 // @Produce		json
-// @Param			type		query		string									true	"资源类型(achievements/skills/items/cards)"
+// @Param			type	query		string						true	"资源类型(achievements/skills/items/cards)"
 // @Param			request	body		dto.AdminCreateSkillRequest	true	"创建请求体(示例以skills为准)"
-// @Success		200			{object}	dto.Response							"创建成功"
-// @Failure		400			{object}	dto.Response							"请求参数错误"
-// @Failure		401			{object}	dto.Response							"登录状态异常"
-// @Failure		409			{object}	dto.Response							"名称冲突"
-// @Failure		500			{object}	dto.Response							"数据库错误"
+// @Success		200		{object}	dto.Response				"创建成功"
+// @Failure		400		{object}	dto.Response				"请求参数错误"
+// @Failure		401		{object}	dto.Response				"登录状态异常"
+// @Failure		409		{object}	dto.Response				"名称冲突"
+// @Failure		500		{object}	dto.Response				"数据库错误"
 // @Router			/api/admin/operation/resources [post]
 func CreateResourceByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)
@@ -1044,14 +1044,14 @@ func CreateResourceByTypeForAdmin(c *gin.Context) {
 // @Tags			admin-update
 // @Accept			json
 // @Produce		json
-// @Param			type		query		string									true	"资源类型(achievements/skills/items/cards)"
+// @Param			type	query		string						true	"资源类型(achievements/skills/items/cards)"
 // @Param			request	body		dto.AdminUpdateSkillRequest	true	"更新请求体(示例以skills为准)"
-// @Success		200			{object}	dto.Response							"更新成功"
-// @Failure		400			{object}	dto.Response							"请求参数错误"
-// @Failure		401			{object}	dto.Response							"登录状态异常"
-// @Failure		404			{object}	dto.Response							"目标资源不存在"
-// @Failure		409			{object}	dto.Response							"名称冲突"
-// @Failure		500			{object}	dto.Response							"数据库错误"
+// @Success		200		{object}	dto.Response				"更新成功"
+// @Failure		400		{object}	dto.Response				"请求参数错误"
+// @Failure		401		{object}	dto.Response				"登录状态异常"
+// @Failure		404		{object}	dto.Response				"目标资源不存在"
+// @Failure		409		{object}	dto.Response				"名称冲突"
+// @Failure		500		{object}	dto.Response				"数据库错误"
 // @Router			/api/admin/update/resources [put]
 func UpdateResourceByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)
@@ -1096,13 +1096,13 @@ func UpdateResourceByTypeForAdmin(c *gin.Context) {
 // @Tags			admin-operation
 // @Accept			json
 // @Produce		json
-// @Param			type		query		string										true	"资源类型(achievements/skills/items/cards)"
+// @Param			type	query		string									true	"资源类型(achievements/skills/items/cards)"
 // @Param			request	body		dto.AdminDeleteResourceByTypeRequest	true	"删除请求体"
-// @Success		200			{object}	dto.Response								"删除成功"
-// @Failure		400			{object}	dto.Response								"请求参数错误"
-// @Failure		401			{object}	dto.Response								"登录状态异常"
-// @Failure		404			{object}	dto.Response								"目标资源不存在"
-// @Failure		500			{object}	dto.Response								"数据库错误"
+// @Success		200		{object}	dto.Response							"删除成功"
+// @Failure		400		{object}	dto.Response							"请求参数错误"
+// @Failure		401		{object}	dto.Response							"登录状态异常"
+// @Failure		404		{object}	dto.Response							"目标资源不存在"
+// @Failure		500		{object}	dto.Response							"数据库错误"
 // @Router			/api/admin/operation/resources [delete]
 func DeleteResourceByTypeForAdmin(c *gin.Context) {
 	relationType, err := parseResourceType(c)

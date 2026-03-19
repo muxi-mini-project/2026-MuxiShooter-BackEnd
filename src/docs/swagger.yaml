@@ -9,6 +9,66 @@ definitions:
       description:
         type: string
     type: object
+  dto.AdminCreateSkillRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 50
+        minLength: 1
+        type: string
+      prq_skill_id:
+        type: integer
+      skill_group:
+        type: string
+    required:
+    - name
+    type: object
+  dto.AdminDeleteResourceByTypeRequest:
+    description: 用于skills/achievements/items/cards的删除（按ID）
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  dto.AdminDeleteUserRequest:
+    description: 按用户ID删除用户
+    properties:
+      user_id:
+        type: integer
+    required:
+    - user_id
+    type: object
+  dto.AdminUpdateSkillRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      prq_skill_id:
+        type: integer
+      skill_group:
+        type: string
+    required:
+    - id
+    type: object
+  dto.AdminUpdateUserGroupRequest:
+    description: 按用户ID修改权限组，仅支持user/admin
+    properties:
+      new_group:
+        enum:
+        - user
+        - admin
+        type: string
+      user_id:
+        type: integer
+    required:
+    - new_group
+    - user_id
+    type: object
   dto.AuthData:
     properties:
       expires_at:
@@ -335,6 +395,290 @@ paths:
       summary: 获取用户列表
       tags:
       - admin-get
+  /api/admin/get/resources:
+    get:
+      description: |-
+        通过query参数type查询skills/achievements/items/cards；支持分页与可选id精确查询
+        type可选值：achievements、skills、items、cards
+      parameters:
+      - description: 资源类型(achievements/skills/items/cards)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 资源ID，传入后优先精确查询
+        in: query
+        name: id
+        type: integer
+      - description: 名称模糊搜索
+        in: query
+        name: name
+        type: string
+      - description: 技能组模糊搜索(type=skills有效)
+        in: query
+        name: skill_group
+        type: string
+      - description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页多少，默认20，最大100
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PaginatedData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库查询失败
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员按类型查询基础资源
+      tags:
+      - admin-get
+  /api/admin/operation/deleteuser:
+    delete:
+      consumes:
+      - application/json
+      description: 管理员删除用户。ID=1(初始化管理员)不可删除；其他管理员仅可删除普通用户
+      parameters:
+      - description: 删除用户请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminDeleteUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员删除用户
+      tags:
+      - admin-operation
+  /api/admin/operation/resources:
+    delete:
+      consumes:
+      - application/json
+      description: 通过query参数type删除skills/achievements/items/cards中的一种资源
+      parameters:
+      - description: 资源类型(achievements/skills/items/cards)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 删除请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminDeleteResourceByTypeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: 目标资源不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员按类型删除基础资源
+      tags:
+      - admin-operation
+    post:
+      consumes:
+      - application/json
+      description: |-
+        通过query参数type创建skills/achievements/items/cards中的一种资源
+        type=achievements 请求体：dto.AdminCreateAchievementRequest
+        type=skills 请求体：dto.AdminCreateSkillRequest
+        type=items 请求体：dto.AdminCreateItemRequest
+        type=cards 请求体：dto.AdminCreateCardRequest
+      parameters:
+      - description: 资源类型(achievements/skills/items/cards)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 创建请求体(示例以skills为准)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminCreateSkillRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "409":
+          description: 名称冲突
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员按类型创建基础资源
+      tags:
+      - admin-operation
+  /api/admin/update/resources:
+    put:
+      consumes:
+      - application/json
+      description: |-
+        通过query参数type更新skills/achievements/items/cards中的一种资源
+        type=achievements 请求体：dto.AdminUpdateAchievementRequest
+        type=skills 请求体：dto.AdminUpdateSkillRequest
+        type=items 请求体：dto.AdminUpdateItemRequest
+        type=cards 请求体：dto.AdminUpdateCardRequest
+      parameters:
+      - description: 资源类型(achievements/skills/items/cards)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 更新请求体(示例以skills为准)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpdateSkillRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: 目标资源不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "409":
+          description: 名称冲突
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员按类型更新基础资源
+      tags:
+      - admin-update
+  /api/admin/update/usergroup:
+    put:
+      consumes:
+      - application/json
+      description: ID=1(初始化管理员)权限组不可修改；仅ID=1可修改其他用户权限组
+      parameters:
+      - description: 修改权限组请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminUpdateUserGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: 登录状态异常
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: 数据库错误
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 管理员修改用户权限组
+      tags:
+      - admin-update
   /api/auth/login:
     post:
       consumes:
