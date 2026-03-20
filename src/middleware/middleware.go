@@ -45,17 +45,26 @@ func JWTAuth(tokenParser JWTTokenParser, userRepository JWTUserRepository) gin.H
 
 		authHeader = strings.TrimSpace(authHeader)
 		var tokenStr string
-		if len(authHeader) >= 6 && strings.EqualFold(authHeader[:6], "Bearer") {
-			tokenStr = strings.TrimSpace(authHeader[6:])
+		tokenStr = authHeader
+		for {
+			if len(tokenStr) < 6 || !strings.EqualFold(tokenStr[:6], "Bearer") {
+				break
+			}
+			tokenStr = strings.TrimSpace(tokenStr[6:])
 			tokenStr = strings.TrimSpace(strings.TrimPrefix(tokenStr, ":"))
-		} else {
-			tokenStr = authHeader
 		}
 
 		if tokenStr == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
 				Code:    http.StatusUnauthorized,
 				Message: "Authorization格式错误",
+			})
+			return
+		}
+		if strings.Count(tokenStr, ".") != 2 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.Response{
+				Code:    http.StatusUnauthorized,
+				Message: "token格式错误，请传入登录接口返回的token",
 			})
 			return
 		}
