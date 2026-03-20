@@ -32,7 +32,7 @@ func NewProfileHandler(profileService *service.ProfileService) *ProfileHandler {
 // @Failure      401  {object}  dto.Response  "登录状态异常或用户不存在"
 // @Failure      500  {object}  dto.Response  "服务器错误"
 // @Security     BearerAuth
-// @Router       /profile/operation/logout [get]
+// @Router       /api/profile/operation/logout [get]
 func (h *ProfileHandler) Logout(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -79,7 +79,7 @@ func (h *ProfileHandler) Logout(c *gin.Context) {
 // @Failure      404   {object}  dto.Response               "用户不存在"
 // @Failure      500   {object}  dto.Response               "服务器错误"
 // @Security     BearerAuth
-// @Router       /profile/update/password [put]
+// @Router       /api/profile/update/password [put]
 func (h *ProfileHandler) UpdatePassword(c *gin.Context) {
 	var req dto.UpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -136,7 +136,7 @@ func (h *ProfileHandler) UpdatePassword(c *gin.Context) {
 // @Failure      404   {object}  dto.Response               "用户不存在"
 // @Failure      500   {object}  dto.Response               "服务器错误"
 // @Security     BearerAuth
-// @Router       /profile/update/username [put]
+// @Router       /api/profile/update/username [put]
 func (h *ProfileHandler) UpdateUsername(c *gin.Context) {
 	var req dto.UpdateUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -189,7 +189,7 @@ func (h *ProfileHandler) UpdateUsername(c *gin.Context) {
 // @Failure      404  {object}  dto.Response  "用户不存在"
 // @Failure      500  {object}  dto.Response  "服务器错误"
 // @Security     BearerAuth
-// @Router       /profile/update/headimage [put]
+// @Router       /api/profile/update/headimage [put]
 func (h *ProfileHandler) UpdateHeadImage(c *gin.Context) {
 	var req dto.UpdateHeadImageRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -267,7 +267,7 @@ func (h *ProfileHandler) UpdateHeadImage(c *gin.Context) {
 // @Failure      404   {object}  dto.Response             "用户不存在"
 // @Failure      500   {object}  dto.Response             "数据库错误"
 // @Security     BearerAuth
-// @Router       /profile/update/coin [put]
+// @Router       /api/profile/update/coin [put]
 func (h *ProfileHandler) UpdateCoinByType(c *gin.Context) {
 	var req dto.UpdateCoinByTypeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -327,7 +327,7 @@ func (h *ProfileHandler) UpdateCoinByType(c *gin.Context) {
 // @Failure      409   {object}  dto.Response                 "关联已存在"
 // @Failure      500   {object}  dto.Response                 "创建失败"
 // @Security     BearerAuth
-// @Router       /profile/operation/relations [post]
+// @Router       /api/profile/operation/relations [post]
 func (h *ProfileHandler) CreateSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -392,7 +392,7 @@ func (h *ProfileHandler) CreateSelfRelationByType(c *gin.Context) {
 // @Failure      404   {object}  dto.Response                 "关联记录不存在"
 // @Failure      500   {object}  dto.Response                 "更新失败"
 // @Security     BearerAuth
-// @Router       /profile/update/relations [put]
+// @Router       /api/profile/update/relations [put]
 func (h *ProfileHandler) UpdateSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -447,7 +447,7 @@ func (h *ProfileHandler) UpdateSelfRelationByType(c *gin.Context) {
 // @Failure      404   {object}  dto.Response                 "关联记录不存在"
 // @Failure      500   {object}  dto.Response                 "删除失败"
 // @Security     BearerAuth
-// @Router       /profile/operation/relations [delete]
+// @Router       /api/profile/operation/relations [delete]
 func (h *ProfileHandler) DeleteSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -497,7 +497,7 @@ func (h *ProfileHandler) DeleteSelfRelationByType(c *gin.Context) {
 // @Failure      404  {object}  dto.Response  "用户不存在"
 // @Failure      500  {object}  dto.Response  "数据库错误"
 // @Security     BearerAuth
-// @Router       /profile/get/self [get]
+// @Router       /api/profile/get/self [get]
 func (h *ProfileHandler) GetSelfProfile(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -532,7 +532,7 @@ func (h *ProfileHandler) GetSelfProfile(c *gin.Context) {
 // @Failure      401        {object}  dto.Response  "登录状态异常"
 // @Failure      500        {object}  dto.Response  "查询失败"
 // @Security     BearerAuth
-// @Router       /profile/get/relations [get]
+// @Router       /api/profile/get/relations [get]
 func (h *ProfileHandler) GetSelfRelationsByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {

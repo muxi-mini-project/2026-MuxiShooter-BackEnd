@@ -15,7 +15,7 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
-    "basePath": "/api",
+    "basePath": "/",
     "paths": {
         "/api/admin/get/getusers": {
             "get": {
@@ -739,7 +739,7 @@
                 }
             }
         },
-        "/profile/get/relations": {
+        "/api/profile/get/relations": {
             "get": {
                 "security": [
                     {
@@ -803,7 +803,7 @@
                 }
             }
         },
-        "/profile/get/self": {
+        "/api/profile/get/self": {
             "get": {
                 "security": [
                     {
@@ -846,7 +846,7 @@
                 }
             }
         },
-        "/profile/operation/logout": {
+        "/api/profile/operation/logout": {
             "get": {
                 "security": [
                     {
@@ -883,7 +883,7 @@
                 }
             }
         },
-        "/profile/operation/relations": {
+        "/api/profile/operation/relations": {
             "post": {
                 "security": [
                     {
@@ -1027,7 +1027,7 @@
                 }
             }
         },
-        "/profile/update/coin": {
+        "/api/profile/update/coin": {
             "put": {
                 "security": [
                     {
@@ -1097,7 +1097,7 @@
                 }
             }
         },
-        "/profile/update/headimage": {
+        "/api/profile/update/headimage": {
             "put": {
                 "security": [
                     {
@@ -1164,7 +1164,7 @@
                 }
             }
         },
-        "/profile/update/password": {
+        "/api/profile/update/password": {
             "put": {
                 "security": [
                     {
@@ -1233,7 +1233,7 @@
                 }
             }
         },
-        "/profile/update/relations": {
+        "/api/profile/update/relations": {
             "put": {
                 "security": [
                     {
@@ -1303,7 +1303,7 @@
                 }
             }
         },
-        "/profile/update/username": {
+        "/api/profile/update/username": {
             "put": {
                 "security": [
                     {

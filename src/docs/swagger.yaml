@@ -1,4 +1,4 @@
-basePath: /api
+basePath: /
 definitions:
   dto.AdminDeleteResourceByTypeRequest:
     description: 用于skills/achievements/items/cards的删除（按ID）
@@ -758,7 +758,7 @@ paths:
       summary: 用户注册
       tags:
       - auth
-  /profile/get/relations:
+  /api/profile/get/relations:
     get:
       description: 通过query参数type查询本人在achievements/skills/items/cards中的关联数据，支持分页
       parameters:
@@ -799,7 +799,7 @@ paths:
       summary: 用户按类型查询自身资源关联
       tags:
       - profile-relation
-  /profile/get/self:
+  /api/profile/get/self:
     get:
       description: 查询当前登录用户的基础信息
       produces:
@@ -826,7 +826,7 @@ paths:
       summary: 获取当前用户信息
       tags:
       - profile
-  /profile/operation/logout:
+  /api/profile/operation/logout:
     get:
       description: 当前登录用户登出（使现有token失效）
       produces:
@@ -849,7 +849,7 @@ paths:
       summary: 用户登出
       tags:
       - profile
-  /profile/operation/relations:
+  /api/profile/operation/relations:
     delete:
       consumes:
       - application/json
@@ -942,7 +942,7 @@ paths:
       summary: 用户按类型创建自身资源关联
       tags:
       - profile-relation
-  /profile/update/coin:
+  /api/profile/update/coin:
     put:
       consumes:
       - application/json
@@ -987,7 +987,7 @@ paths:
       summary: 用户按类型修改金币
       tags:
       - profile
-  /profile/update/headimage:
+  /api/profile/update/headimage:
     put:
       consumes:
       - multipart/form-data
@@ -1030,7 +1030,7 @@ paths:
       summary: 用户修改头像
       tags:
       - profile
-  /profile/update/password:
+  /api/profile/update/password:
     put:
       consumes:
       - application/json
@@ -1074,7 +1074,7 @@ paths:
       summary: 用户修改密码
       tags:
       - profile
-  /profile/update/relations:
+  /api/profile/update/relations:
     put:
       consumes:
       - application/json
@@ -1119,7 +1119,7 @@ paths:
       summary: 用户按类型更新自身资源关联
       tags:
       - profile-relation
-  /profile/update/username:
+  /api/profile/update/username:
     put:
       consumes:
       - application/json

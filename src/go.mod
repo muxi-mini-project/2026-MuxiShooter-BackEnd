@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
-	github.com/swaggo/swag v1.8.12
+	github.com/swaggo/swag v1.16.4
 	github.com/ulule/limiter/v3 v3.11.2
 	golang.org/x/crypto v0.46.0
 	gorm.io/driver/mysql v1.6.0

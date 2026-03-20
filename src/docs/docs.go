@@ -745,7 +745,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/get/relations": {
+        "/api/profile/get/relations": {
             "get": {
                 "security": [
                     {
@@ -809,7 +809,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/get/self": {
+        "/api/profile/get/self": {
             "get": {
                 "security": [
                     {
@@ -852,7 +852,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/operation/logout": {
+        "/api/profile/operation/logout": {
             "get": {
                 "security": [
                     {
@@ -889,7 +889,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/operation/relations": {
+        "/api/profile/operation/relations": {
             "post": {
                 "security": [
                     {
@@ -1033,7 +1033,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/update/coin": {
+        "/api/profile/update/coin": {
             "put": {
                 "security": [
                     {
@@ -1103,7 +1103,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/update/headimage": {
+        "/api/profile/update/headimage": {
             "put": {
                 "security": [
                     {
@@ -1170,7 +1170,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/update/password": {
+        "/api/profile/update/password": {
             "put": {
                 "security": [
                     {
@@ -1239,7 +1239,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/update/relations": {
+        "/api/profile/update/relations": {
             "put": {
                 "security": [
                     {
@@ -1309,7 +1309,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/update/username": {
+        "/api/profile/update/username": {
             "put": {
                 "security": [
                     {
@@ -1805,14 +1805,14 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "MuXiShooter",
 	Description:      "MuXiShooter",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	// LeftDelim:        "{{",
-	// RightDelim:       "}}",
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
