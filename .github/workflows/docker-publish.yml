@@ -11,8 +11,7 @@ on:
       - Dockerfile
       - docker-compose.yml
       - src/**
-      # - config/**
-      # - Caddy/**
+      - Caddy/**
       - src/go.mod
       - src/go.sum
       - .github/workflows/docker-publish.yml
@@ -56,6 +55,30 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect infra config changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            infra:
+              - 'docker-compose.yml'
+              - 'Caddy/**'
+
+      - name: Upload compose and Caddy config
+        if: steps.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "docker-compose.yml,Caddy/Caddyfile"
+          target: ${{ secrets.SERVER_PATH }}
+          overwrite: true
+
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -89,10 +112,22 @@ jobs:
               done
             }
 
+            probe_caddy() {
+              curl -fsS --max-time 5 -H "Host: localhost" http://127.0.0.1/health
+            }
+
             if [ ! -f docker-compose.yml ]; then
               echo "docker-compose.yml not found in SERVER_PATH"
               exit 1
             fi
+
+            mkdir -p Caddy
+            if [ ! -f Caddy/Caddyfile ]; then
+              echo "Caddy/Caddyfile not found in SERVER_PATH"
+              exit 1
+            fi
+
+            docker compose config --quiet
 
             NEW_TAG="${{ github.sha }}"
             PREV_TAG="$(docker compose ps -q app | xargs -r docker inspect --format '{{.Config.Image}}' 2>/dev/null | sed -n 's|.*:||p' | head -n1)"
@@ -108,7 +143,7 @@ jobs:
 
             export IMAGE_TAG="$NEW_TAG"
             retry 5 8 docker compose pull app
-            docker compose up -d app
+            docker compose up -d --no-deps app
 
             HEALTHY="false"
             for i in $(seq 1 30); do
@@ -137,8 +172,34 @@ jobs:
               echo "Deploy failed, rolling back to tag: $PREV_TAG"
               export IMAGE_TAG="$PREV_TAG"
               retry 3 8 docker compose pull app || true
-              docker compose up -d app
+              docker compose up -d --no-deps app
               exit 1
+            fi
+
+            HEALTH_BODY="$(curl -fsS --max-time 5 http://127.0.0.1:8080/health || true)"
+            echo "HTTP /health response: ${HEALTH_BODY}"
+            if [ -z "$HEALTH_BODY" ] || ! echo "$HEALTH_BODY" | grep -q '"code":200' || ! echo "$HEALTH_BODY" | grep -q "I'm OK."; then
+              echo "HTTP /health validation failed, rolling back to tag: $PREV_TAG"
+              export IMAGE_TAG="$PREV_TAG"
+              retry 3 8 docker compose pull app || true
+              docker compose up -d --no-deps app
+              exit 1
+            fi
+
+            CADDY_HEALTH_BODY="$(probe_caddy || true)"
+            echo "Caddy /health response: ${CADDY_HEALTH_BODY}"
+            if [ "$CADDY_HEALTH_BODY" != "OK" ]; then
+              echo "Caddy probe failed, trying to self-heal by restarting caddy..."
+              docker compose up -d --no-deps caddy
+              sleep 3
+
+              CADDY_HEALTH_BODY="$(probe_caddy || true)"
+              echo "Caddy /health response after restart: ${CADDY_HEALTH_BODY}"
+              if [ "$CADDY_HEALTH_BODY" != "OK" ]; then
+                echo "Caddy reverse-proxy validation failed after self-heal."
+                echo "Skip app rollback because this is likely a proxy/config/network issue."
+                exit 1
+              fi
             fi
 
             echo "$NEW_TAG" > .last_app_tag
