@@ -53,8 +53,6 @@ firechickenmp4.top, www.firechickenmp4.top {
 			# 保持连接
 			transport http {
 				dial_timeout 10s
-				read_timeout 30s
-				write_timeout 30s
 			}
 		}
 	}
