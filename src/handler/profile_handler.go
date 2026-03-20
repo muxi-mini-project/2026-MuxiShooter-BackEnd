@@ -23,6 +23,16 @@ func NewProfileHandler(profileService *service.ProfileService) *ProfileHandler {
 	return &ProfileHandler{profileService: profileService}
 }
 
+// Logout godoc
+// @Summary      用户登出
+// @Description  当前登录用户登出（使现有token失效）
+// @Tags         profile
+// @Produce      json
+// @Success      200  {object}  dto.Response  "登出成功"
+// @Failure      401  {object}  dto.Response  "登录状态异常或用户不存在"
+// @Failure      500  {object}  dto.Response  "服务器错误"
+// @Security     BearerAuth
+// @Router       /profile/operation/logout [get]
 func (h *ProfileHandler) Logout(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -55,6 +65,21 @@ func (h *ProfileHandler) Logout(c *gin.Context) {
 	})
 }
 
+// UpdatePassword godoc
+// @Summary      用户修改密码
+// @Description  通过旧密码校验后更新密码，成功后当前登录状态失效
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Param        body  body      dto.UpdatePasswordRequest  true  "修改密码请求体"
+// @Success      200   {object}  dto.Response               "修改密码成功"
+// @Failure      400   {object}  dto.Response               "请求参数错误"
+// @Failure      401   {object}  dto.Response               "登录状态异常"
+// @Failure      403   {object}  dto.Response               "旧密码错误或修改过于频繁"
+// @Failure      404   {object}  dto.Response               "用户不存在"
+// @Failure      500   {object}  dto.Response               "服务器错误"
+// @Security     BearerAuth
+// @Router       /profile/update/password [put]
 func (h *ProfileHandler) UpdatePassword(c *gin.Context) {
 	var req dto.UpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -97,6 +122,21 @@ func (h *ProfileHandler) UpdatePassword(c *gin.Context) {
 	})
 }
 
+// UpdateUsername godoc
+// @Summary      用户修改用户名
+// @Description  修改当前用户用户名
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Param        body  body      dto.UpdateUsernameRequest  true  "修改用户名请求体"
+// @Success      200   {object}  dto.Response               "修改成功"
+// @Failure      400   {object}  dto.Response               "请求参数错误"
+// @Failure      401   {object}  dto.Response               "登录状态异常"
+// @Failure      403   {object}  dto.Response               "修改过于频繁"
+// @Failure      404   {object}  dto.Response               "用户不存在"
+// @Failure      500   {object}  dto.Response               "服务器错误"
+// @Security     BearerAuth
+// @Router       /profile/update/username [put]
 func (h *ProfileHandler) UpdateUsername(c *gin.Context) {
 	var req dto.UpdateUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -135,6 +175,21 @@ func (h *ProfileHandler) UpdateUsername(c *gin.Context) {
 	})
 }
 
+// UpdateHeadImage godoc
+// @Summary      用户修改头像
+// @Description  上传并更新当前用户头像
+// @Tags         profile
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        new_head_image  formData  file  true  "头像文件"
+// @Success      200  {object}  dto.Response  "修改成功"
+// @Failure      400  {object}  dto.Response  "请求参数错误"
+// @Failure      401  {object}  dto.Response  "登录状态异常"
+// @Failure      403  {object}  dto.Response  "修改过于频繁"
+// @Failure      404  {object}  dto.Response  "用户不存在"
+// @Failure      500  {object}  dto.Response  "服务器错误"
+// @Security     BearerAuth
+// @Router       /profile/update/headimage [put]
 func (h *ProfileHandler) UpdateHeadImage(c *gin.Context) {
 	var req dto.UpdateHeadImageRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -198,6 +253,21 @@ func (h *ProfileHandler) UpdateHeadImage(c *gin.Context) {
 	})
 }
 
+// UpdateCoinByType godoc
+// @Summary      用户按类型修改金币
+// @Description  通过query参数type(strength/select)修改对应金币
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Param        type  query     string                   true  "金币类型(strength/select)"
+// @Param        body  body      dto.UpdateCoinByTypeRequest true  "修改金币请求体"
+// @Success      200   {object}  dto.Response             "修改成功"
+// @Failure      400   {object}  dto.Response             "请求参数错误"
+// @Failure      401   {object}  dto.Response             "登录状态异常"
+// @Failure      404   {object}  dto.Response             "用户不存在"
+// @Failure      500   {object}  dto.Response             "数据库错误"
+// @Security     BearerAuth
+// @Router       /profile/update/coin [put]
 func (h *ProfileHandler) UpdateCoinByType(c *gin.Context) {
 	var req dto.UpdateCoinByTypeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -242,6 +312,22 @@ func (h *ProfileHandler) UpdateCoinByType(c *gin.Context) {
 	})
 }
 
+// CreateSelfRelationByType godoc
+// @Summary      用户按类型创建自身资源关联
+// @Description  通过query参数type(achievements/skills/items/cards)和body中的resource_id创建本人关联记录
+// @Tags         profile-relation
+// @Accept       json
+// @Produce      json
+// @Param        type  query     string                       true  "关联类型(achievements/skills/items/cards)"
+// @Param        body  body      dto.UserRelationCreateRequest true  "创建关联请求体"
+// @Success      200   {object}  dto.Response                 "创建成功"
+// @Failure      400   {object}  dto.Response                 "请求参数错误"
+// @Failure      401   {object}  dto.Response                 "登录状态异常"
+// @Failure      404   {object}  dto.Response                 "目标资源不存在"
+// @Failure      409   {object}  dto.Response                 "关联已存在"
+// @Failure      500   {object}  dto.Response                 "创建失败"
+// @Security     BearerAuth
+// @Router       /profile/operation/relations [post]
 func (h *ProfileHandler) CreateSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -292,6 +378,21 @@ func (h *ProfileHandler) CreateSelfRelationByType(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.Response{Code: http.StatusOK, Message: "创建成功", Data: data})
 }
 
+// UpdateSelfRelationByType godoc
+// @Summary      用户按类型更新自身资源关联
+// @Description  通过query参数type(achievements/skills/items/cards)和body更新本人关联记录，skills支持skill_grade
+// @Tags         profile-relation
+// @Accept       json
+// @Produce      json
+// @Param        type  query     string                       true  "关联类型(achievements/skills/items/cards)"
+// @Param        body  body      dto.UserRelationUpdateRequest true  "更新关联请求体"
+// @Success      200   {object}  dto.Response                 "更新成功"
+// @Failure      400   {object}  dto.Response                 "请求参数错误"
+// @Failure      401   {object}  dto.Response                 "登录状态异常"
+// @Failure      404   {object}  dto.Response                 "关联记录不存在"
+// @Failure      500   {object}  dto.Response                 "更新失败"
+// @Security     BearerAuth
+// @Router       /profile/update/relations [put]
 func (h *ProfileHandler) UpdateSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -332,6 +433,21 @@ func (h *ProfileHandler) UpdateSelfRelationByType(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.Response{Code: http.StatusOK, Message: "更新成功", Data: data})
 }
 
+// DeleteSelfRelationByType godoc
+// @Summary      用户按类型删除自身资源关联
+// @Description  通过query参数type(achievements/skills/items/cards)和body中的resource_id删除本人关联记录
+// @Tags         profile-relation
+// @Accept       json
+// @Produce      json
+// @Param        type  query     string                       true  "关联类型(achievements/skills/items/cards)"
+// @Param        body  body      dto.UserRelationDeleteRequest true  "删除关联请求体"
+// @Success      200   {object}  dto.Response                 "删除成功"
+// @Failure      400   {object}  dto.Response                 "请求参数错误"
+// @Failure      401   {object}  dto.Response                 "登录状态异常"
+// @Failure      404   {object}  dto.Response                 "关联记录不存在"
+// @Failure      500   {object}  dto.Response                 "删除失败"
+// @Security     BearerAuth
+// @Router       /profile/operation/relations [delete]
 func (h *ProfileHandler) DeleteSelfRelationByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -371,6 +487,17 @@ func (h *ProfileHandler) DeleteSelfRelationByType(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.Response{Code: http.StatusOK, Message: "删除成功"})
 }
 
+// GetSelfProfile godoc
+// @Summary      获取当前用户信息
+// @Description  查询当前登录用户的基础信息
+// @Tags         profile
+// @Produce      json
+// @Success      200  {object}  dto.Response  "查询成功"
+// @Failure      401  {object}  dto.Response  "登录状态异常"
+// @Failure      404  {object}  dto.Response  "用户不存在"
+// @Failure      500  {object}  dto.Response  "数据库错误"
+// @Security     BearerAuth
+// @Router       /profile/get/self [get]
 func (h *ProfileHandler) GetSelfProfile(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
@@ -392,6 +519,20 @@ func (h *ProfileHandler) GetSelfProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.Response{Code: http.StatusOK, Message: "查询成功", Data: data})
 }
 
+// GetSelfRelationsByType godoc
+// @Summary      用户按类型查询自身资源关联
+// @Description  通过query参数type查询本人在achievements/skills/items/cards中的关联数据，支持分页
+// @Tags         profile-relation
+// @Produce      json
+// @Param        type       query     string  true   "关联类型(achievements/skills/items/cards)"
+// @Param        page       query     int     false  "页码，默认1"
+// @Param        page_size  query     int     false  "每页数量，默认20，最大100"
+// @Success      200        {object}  dto.Response  "查询成功"
+// @Failure      400        {object}  dto.Response  "请求参数错误"
+// @Failure      401        {object}  dto.Response  "登录状态异常"
+// @Failure      500        {object}  dto.Response  "查询失败"
+// @Security     BearerAuth
+// @Router       /profile/get/relations [get]
 func (h *ProfileHandler) GetSelfRelationsByType(c *gin.Context) {
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
